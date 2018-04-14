@@ -10,6 +10,8 @@
 		<th>Language</th>
 		<th>Country</th>
 		<th>Year</th>
+		<th>Gender</th>
+		<th></th>
 	</tr>
 
 	{{#each books}}
@@ -19,6 +21,8 @@
 		<td><a href="/listBooks?language={{this.lang_id}}">{{this.language}}</a></td>
 		<td><a href="/listBooks?country={{this.country_id}}">{{this.country}}</a></td>
 		<td>{{this.year}}</td>
+		<td><a href="/listBooks?gender={{this.gender}}">{{this.gender}}</a></td>
+		<td><a href="/removeBook?id={{this.book_id}}">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>

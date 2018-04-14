@@ -26,7 +26,6 @@ var mysql = require('./dbcon.js');
 * request handlers
 *************************************************/
 app.get('/', function(req, res, next){
-	console.log("Requested the home page");
 	res.render('home');
 });
 
@@ -39,7 +38,7 @@ app.get('/', function(req, res, next){
 app.get('/listBooks', function(req, res, next){
 	console.log("Request received for table data");
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
-		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id \
+		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender \
 		FROM Book AS b \
 		LEFT JOIN Author AS a ON b.author_id = a.id \
 		LEFT JOIN Country AS c ON a.country_id = c.id \
@@ -59,6 +58,11 @@ app.get('/listBooks', function(req, res, next){
 		console.log("There is a country: ", req.query.country);
 		book_query += " AND a.country_id = " + req.query.country;
 	}
+	if(req.query.gender){
+		book_query += " AND a.gender = " + "'" + req.query.gender + "'";
+	}
+
+	book_query += " ORDER BY a.lastName, b.year";
 
 	mysql.pool.query(book_query, function(err, rows, fields){
 		if(err){
@@ -154,10 +158,11 @@ app.post('/addAuthor', function(req, res, next){
 	var last_name = req.body.last_name;
 	var birthdate = req.body.author_dob;
 	var country = req.body.author_country;
+	var gender = req.body.gender;
 
-	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id) \
-		VALUES (?, ?, ?, (SELECT id FROM Country WHERE country=?))", 
-		[first_name, last_name, birthdate, country], 
+	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id, gender) \
+		VALUES (?, ?, ?, (SELECT id FROM Country WHERE country=?), ?)", 
+		[first_name, last_name, birthdate, country, gender], 
 		function(err, result){
 		if(err){
 			res.send({response: "Database error"});
@@ -219,23 +224,20 @@ app.post('/editBook', function(req, res, next){
 })
 
 // delete a book
-// app.get('/removeBook', function(req, res, next){
-// 	console.log("request received to delete entry " + req.query.id);
+app.get('/removeBook', function(req, res, next){
+	console.log("request received to delete entry " + req.query.id);
 
-// 	mysql.pool.query("DELETE FROM Book WHERE id=?", [req.query.id], function(err, result){
-// 		if(err){
-// 			res.send({response: "Database error"});
-// 			next(err);
-// 			return;
-// 		}
+	mysql.pool.query("DELETE FROM Book WHERE id=?", [req.query.id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		}
 
-// 		// send a success message back to the requester
-// 		res.set('Content-Type', 'application/json');
-// 		res.status(200);
-// 		res.send({response: "Successful deletion"});
-// 	});
+		res.redirect("/listBooks");
+	});
 
-// });
+});
 
 
 /*************************************************

@@ -1,4 +1,3 @@
--- ****************** SqlDBM: MySQL ******************;
 -- ***************************************************;
 DROP TABLE `BookUser`;
 DROP TABLE `Book`;
@@ -51,10 +50,11 @@ CREATE TABLE `Language`
 CREATE TABLE `Author`
 (
  `id`         INT NOT NULL AUTO_INCREMENT ,
- `firstName`  VARCHAR(100) NOT NULL ,
- `lastName`	  VARCHAR(100) NOT NULL ,
+ `firstName`  VARCHAR(50) NOT NULL ,
+ `lastName`	  VARCHAR(50) NOT NULL ,
  `dob`        DATE ,
  `country_id` INT NOT NULL ,
+ `gender`     CHAR(1) ,
 
  PRIMARY KEY (`id`),
  KEY `fkIdx_19` (`country_id`),
@@ -65,11 +65,12 @@ CREATE TABLE `Author`
 -- ************************************** `Book`
 CREATE TABLE `Book`
 (
- `id`          INT NOT NULL AUTO_INCREMENT ,
- `title`       VARCHAR(100) NOT NULL ,
- `year`        INT NOT NULL ,
- `language_id` INT NOT NULL ,
- `author_id`   INT NOT NULL ,
+ `id`           INT NOT NULL AUTO_INCREMENT ,
+ `title`        VARCHAR(100) NOT NULL ,
+ `year`         INT NOT NULL ,
+ `language_id`  INT NOT NULL ,
+ `author_id`    INT NOT NULL ,
+ `is_anthology` INT NOT NULL DEFAULT 0,
 
  PRIMARY KEY (`id`),
  KEY `fkIdx_29` (`language_id`),
