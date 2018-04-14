@@ -1,9 +1,12 @@
-<h1>Authors</h1>
+<h1>Books</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/addBook">Add Book</a>
+<a href="/addAuthor">Add Author</a>
 <table>
 	<tr>
 		<th>Title</th>
-		<th>First Name</th>
-		<th>Last Name</th>
+		<th>Author</th>
 		<th>Language</th>
 		<th>Country</th>
 		<th>Year</th>
@@ -11,11 +14,10 @@
 
 	{{#each books}}
 	<tr>
-		<td>{{this.title}}</td>
-		<td>{{this.firstName}}</td>
-		<td>{{this.lastName}}</td>
-		<td>{{this.language}}</td>
-		<td>{{this.country}}</td>
+		<td><a href="/editBook?id={{this.book_id}}">{{this.title}}</a></td>
+		<td><a href="/listBooks?author={{this.auth_id}}">{{this.lastName}}, {{this.firstName}}</a></td>
+		<td><a href="/listBooks?language={{this.lang_id}}">{{this.language}}</a></td>
+		<td><a href="/listBooks?country={{this.country_id}}">{{this.country}}</a></td>
 		<td>{{this.year}}</td>
 	<tr>
 	{{/each}}

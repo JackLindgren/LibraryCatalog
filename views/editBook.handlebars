@@ -1,0 +1,23 @@
+<h1>Add Book</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/addBook">Add Book</a>
+<a href="/addAuthor">Add Author</a>
+<form id="book_form" action="/editBook" method="post">
+
+	<fieldset id="form_field">
+
+		<legend id="form_legend">Enter a new book</legend>
+
+		Title:    <input type="text" name="book_title" id="book_title" value="{{book_info.title}}"><br>
+		First Name:   <input type="text" name="author_first_name" id="author_first_name" value="{{book_info.firstName}}"><br>
+		Last Name: <input type="text" name="author_last_name" id="author_last_name" value="{{book_info.lastName}}"><br>
+		Language: <input type="text" name="book_language" id="book_language" value="{{book_info.language}}"><br>
+		Year:     <input type="text" name="book_year" id="book_year" value="{{book_info.year}}"><br>
+		<input type="hidden" name="book_id" id="book_id" value="{{book_info.book_id}}">
+
+		<input type="submit" id="new_book" value="Submit">
+
+	</fieldset>
+
+</form>

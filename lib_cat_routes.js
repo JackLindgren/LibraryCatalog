@@ -38,9 +38,27 @@ app.get('/', function(req, res, next){
 // list the current books in the database
 app.get('/listBooks', function(req, res, next){
 	console.log("Request received for table data");
-	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country FROM Book AS b LEFT JOIN Author AS a ON b.author_id = a.id LEFT JOIN Country AS c ON a.country_id = c.id LEFT JOIN Language AS l ON b.language_id = l.id"
+	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
+		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id \
+		FROM Book AS b \
+		LEFT JOIN Author AS a ON b.author_id = a.id \
+		LEFT JOIN Country AS c ON a.country_id = c.id \
+		LEFT JOIN Language AS l ON b.language_id = l.id \
+		WHERE b.id ";
 
 	// take arguments in the query string that limit the search by author, country, or language (using the ID)
+	if(req.query.author){
+		console.log("There is an author: ", req.query.author);
+		book_query += " AND b.author_id = " + req.query.author;
+	}
+	if(req.query.language){
+		console.log("There is a language: ", req.query.language);
+		book_query += " AND b.language_id = " + req.query.language;
+	}
+	if(req.query.country){
+		console.log("There is a country: ", req.query.country);
+		book_query += " AND a.country_id = " + req.query.country;
+	}
 
 	mysql.pool.query(book_query, function(err, rows, fields){
 		if(err){
@@ -111,7 +129,8 @@ app.post('/addBook', function(req, res, next){
 
 	console.log(title, first_name, last_name, language, year);
 
-	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id) VALUES (?, ?, (SELECT id FROM Language WHERE language=?), (SELECT id FROM Author WHERE firstName=? AND lastName=?))", 
+	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id) \
+		VALUES (?, ?, (SELECT id FROM Language WHERE language=?), (SELECT id FROM Author WHERE firstName=? AND lastName=?))", 
 		[title, year, language, first_name, last_name], 
 		function(err, result){
 		if(err){
@@ -129,6 +148,75 @@ app.post('/addBook', function(req, res, next){
 app.get('/addAuthor', function(req, res, render){
 	res.render('authorForm');
 });
+
+app.post('/addAuthor', function(req, res, next){
+	var first_name = req.body.first_name;
+	var last_name = req.body.last_name;
+	var birthdate = req.body.author_dob;
+	var country = req.body.author_country;
+
+	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id) \
+		VALUES (?, ?, ?, (SELECT id FROM Country WHERE country=?))", 
+		[first_name, last_name, birthdate, country], 
+		function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			console.log("Successful author entry");
+			res.redirect("/listAuthors");
+		}
+	});
+});
+
+/*************************************************
+* Edit requests
+* - edit book
+* - edit author
+*************************************************/
+app.get('/editBook', function(req, res, next){
+	var book_id = req.query.id;
+	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
+		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id \
+		FROM Book AS b \
+		LEFT JOIN Author AS a ON b.author_id = a.id \
+		LEFT JOIN Country AS c ON a.country_id = c.id \
+		LEFT JOIN Language AS l ON b.language_id = l.id \
+		WHERE b.id = ? LIMIT 1", 
+		[book_id], 
+		function(err, rows, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			var context = {};
+			context.book_info = rows[0];
+			res.render('editBook', context); 
+		}
+	});
+});
+
+app.post('/editBook', function(req, res, next){
+	var title = req.body.book_title;
+	var first_name = req.body.author_first_name;
+	var last_name = req.body.author_last_name;
+	var language = req.body.book_language;
+	var year = req.body.book_year;
+	var book_id = parseInt(req.body.book_id);
+
+	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = (SELECT id FROM Language WHERE language = ?), author_id = (SELECT id FROM Author WHERE firstName = ? AND lastName = ?) WHERE Book.id = ? ", [title, year, language, first_name, last_name, book_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			console.log("Successful book entry");
+			res.redirect("/listBooks");
+		}
+	});
+})
 
 // delete a book
 // app.get('/removeBook', function(req, res, next){
