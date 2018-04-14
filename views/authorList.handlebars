@@ -13,10 +13,11 @@
 
 	{{#each authors}}
 	<tr>
-		<td>{{this.lastName}}</td>
+		<td><a href="/editAuthor?id={{this.id}}">{{this.lastName}}</a></td>
 		<td>{{this.firstName}}</td>
 		<td>{{this.dob}}</td>
 		<td>{{this.country}}</td>
+		<td><a href="/removeAuthor?id={{this.id}}">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>

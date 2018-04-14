@@ -78,7 +78,7 @@ app.get('/listBooks', function(req, res, next){
 
 // Render a list of authors
 app.get('/listAuthors', function(req, res, render){
-	mysql.pool.query("SELECT a.firstName, a.lastName, a.dob, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id", function(err, rows, fields){
+	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id", function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -221,7 +221,46 @@ app.post('/editBook', function(req, res, next){
 			res.redirect("/listBooks");
 		}
 	});
-})
+});
+
+app.get('/editAuthor', function(req, res, next){
+	var author_id = req.query.id;
+	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id WHERE a.id = ? LIMIT 1",
+		[author_id],
+		function(err, rows, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			var context = {};
+			context.author_info = rows[0];
+			res.render('editAuthor', context);
+		}
+	});
+});
+
+app.post('/editAuthor', function(req, res, next){
+	var first_name = req.body.first_name;
+	var last_name = req.body.last_name;
+	var birthdate = req.body.author_dob;
+	var country = req.body.author_country;
+	var gender = req.body.gender;
+	var author_id = req.body.author_id;
+
+	mysql.pool.query("UPDATE Author SET firstName = ?, lastName = ?, dob = ?, country_id = (SELECT id FROM Country WHERE country=?), gender = ? WHERE Author.id = ?", 
+		[first_name, last_name, birthdate, country, gender, author_id], 
+		function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			console.log("Successful author entry");
+			res.redirect("/listAuthors");
+		}
+	});
+});
 
 // delete a book
 app.get('/removeBook', function(req, res, next){
@@ -232,11 +271,22 @@ app.get('/removeBook', function(req, res, next){
 			res.send({response: "Database error"});
 			next(err);
 			return;
+		} else {
+			res.redirect("/listBooks");
 		}
-
-		res.redirect("/listBooks");
 	});
+});
 
+app.get('/removeAuthor', function(req, res, next){
+	mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect("/listAuthors");
+		}
+	});
 });
 
 
