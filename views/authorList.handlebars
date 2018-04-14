@@ -1,0 +1,18 @@
+<h1>Authors</h1>
+<table>
+	<tr>
+		<th>Last Name</th>
+		<th>First Name</th>
+		<th>Birthdate</th>
+		<th>Country</th>
+	</tr>
+
+	{{#each authors}}
+	<tr>
+		<td>{{this.lastName}}</td>
+		<td>{{this.firstName}}</td>
+		<td>{{this.dob}}</td>
+		<td>{{this.country}}</td>
+	<tr>
+	{{/each}}
+</table>

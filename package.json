@@ -1,0 +1,14 @@
+{
+  "name": "library_catalog",
+  "version": "1.0.0",
+  "decription": "library catalog interface",
+  "main": "lib_cat_routes.js",
+  "author": "Jack Lindgren",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.3",
+    "express-handlebars": "^3.0.0",
+    "forever": "^0.15.3",
+    "mysql": "^2.15.0"
+  }
+}
