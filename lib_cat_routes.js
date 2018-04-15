@@ -90,22 +90,6 @@ app.get('/listAuthors', function(req, res, render){
 	});
 });
 
-// get a single entry matching the given ID
-// app.get('/showBook', function(req, res, next){
-// 	console.log("Request received for data for entry " + req.query.id);
-	
-// 	mysql.pool.query(/* joins to get the additional data from other tables... */"WHERE book.id = ? LIMIT 1", [req.query.id], function(err, rows, fields){
-// 		if(err){
-// 			res.send({response: "Database error"});
-// 			next(err);
-// 			return;
-// 		}
-
-// 		res.set('Content-Type', 'application/json');
-// 		res.status(200);
-// 		res.send(rows);
-// 	})
-// });
 
 /*************************************************
 * Creation requests
@@ -117,7 +101,34 @@ app.get('/listAuthors', function(req, res, render){
 // Render the book creation form
 app.get('/addBook', function(req, res, render){
 	console.log("Rendering the book form");
-	res.render('bookForm');
+	
+	// send back a list of author names and languages 
+	var author_names = [];
+	var languages = [];
+	
+	mysql.pool.query("SELECT firstName, lastName FROM Author", function(err, rows, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			author_names = rows;
+			mysql.pool.query("SELECT language FROM Language", function(err, rows, result){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					languages = rows;
+					var context = {};
+					context.languages = languages;
+					context.author_names = author_names;
+					res.render('bookForm', context);
+				}
+			});
+		}
+	});
+	// res.render('bookForm');
 });
 
 // add a book - POST
@@ -150,7 +161,18 @@ app.post('/addBook', function(req, res, next){
 
 // Render the author creation form
 app.get('/addAuthor', function(req, res, render){
-	res.render('authorForm');
+	mysql.pool.query("SELECT country FROM Country", function(err, rows, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			var context = {};
+			context.countries = rows;
+			res.render('authorForm', context);
+		}
+	});
+	// res.render('authorForm');
 });
 
 app.post('/addAuthor', function(req, res, next){
@@ -262,7 +284,11 @@ app.post('/editAuthor', function(req, res, next){
 	});
 });
 
-// delete a book
+/*************************************************
+* Delete requests
+* - delete book
+* - delete author
+*************************************************/
 app.get('/removeBook', function(req, res, next){
 	console.log("request received to delete entry " + req.query.id);
 

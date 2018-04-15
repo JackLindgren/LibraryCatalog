@@ -12,7 +12,12 @@
 		First Name:    <input type="text" name="first_name" id="first_name"><br>
 		Last Name:     <input type="text" name="last_name" id="last_name"><br>
 		Date of Birth: <input type="date" name="author_dob" id="author_dob"><br>
-		Country:       <input type="text" name="author_country" id="author_country"><br>
+		Country:       <input list="countries" type="text" name="author_country" id="author_country"><br>
+						<datalist id="countries">
+						{{#each countries}}
+						<option value="{{this.country}}">
+						{{/each}}
+						</datalist>
 		Gender:        <select name="gender" id="gender">
 							<option value="m">male</option>
 							<option value="f">female</option>
