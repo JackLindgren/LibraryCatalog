@@ -1,0 +1,31 @@
+<h1>Add Author</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/addBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<form id="author_form" action="{{route}}" method="post">
+
+	<fieldset id="form_field">
+
+		<legend id="form_legend">Enter a new book</legend>
+
+		First Name:		<input type="text" name="first_name" id="first_name" value="{{author_info.firstName}}""><br>
+		Last Name:		<input type="text" name="last_name" id="last_name" value="{{author_info.lastName}}"><br>
+		Date of Birth:	<input type="date" name="author_dob" id="author_dob" value="{{author_info.dob}}"><br>
+		Country:		<select name="author_country" id="author_country" value="{{author_info.country}}"><br>
+							{{#each countries}}
+							<option value="{{this.country}}">{{this.country}}</option>
+							{{/each}}
+						</select>
+		Gender:			<select name="gender" id="gender" value="{{author_info.gender}}">
+							<option value="m">male</option>
+							<option value="f">female</option>
+							<option value="o">other</option>
+						</select>
+						<input type="hidden" name="author_id" id="author_id" value="{{author_info.id}}">
+
+		<input type="submit" id="new_author" value="Submit">
+
+	</fieldset>
+
+</form>

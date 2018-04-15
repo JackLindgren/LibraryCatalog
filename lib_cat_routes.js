@@ -160,28 +160,14 @@ app.post('/addBook', function(req, res, next){
 	});
 });
 
-// Render the author creation form
-app.get('/addAuthor', function(req, res, render){
-	mysql.pool.query("SELECT country FROM Country", function(err, rows, result){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else {
-			var context = {};
-			context.countries = rows;
-			res.render('authorForm', context);
-		}
-	});
-	// res.render('authorForm');
-});
-
 app.post('/addAuthor', function(req, res, next){
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
 	var birthdate = req.body.author_dob;
 	var country = req.body.author_country;
 	var gender = req.body.gender;
+
+	console.log(birthdate);
 
 	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id, gender) \
 		VALUES (?, ?, ?, (SELECT id FROM Country WHERE country=?), ?)", 
@@ -258,7 +244,21 @@ app.get('/editAuthor', function(req, res, next){
 		} else {
 			var context = {};
 			context.author_info = rows[0];
-			res.render('editAuthor', context);
+			mysql.pool.query("SELECT country FROM Country", function(err, rows, result){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					if(author_id){
+						context.route = "/editAuthor";
+					} else {
+						context.route = "/addAuthor";
+					}
+					context.countries = rows;
+					res.render('editAuthor', context);
+				}
+			});
 		}
 	});
 });
