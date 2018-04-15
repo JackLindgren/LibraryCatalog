@@ -149,6 +149,7 @@ app.post('/addBook', function(req, res, next){
 		[title, year, language, first_name, last_name], 
 		function(err, result){
 		if(err){
+			console.log(err);
 			res.send({response: "Database error"});
 			next(err);
 			return;

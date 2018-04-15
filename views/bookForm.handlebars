@@ -22,12 +22,11 @@
 						<option value="{{this.lastName}}">
 						{{/each}}
 						</datalist>
-		Language:   <input list="languages" type="text" name="book_language" id="book_language"><br>
-						<datalist id="languages">
+		Language:   <select name="book_language" id="book_language"><br>
 						{{#each languages}}
-						<option value="{{this.language}}">
+						<option value="{{this.language}}">{{this.language}}</option>
 						{{/each}}
-						</datalist>
+						</select>
 		Year:       <input type="text" name="book_year" id="book_year"><br>
 
 		<input type="submit" id="new_book" value="Submit">
