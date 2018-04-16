@@ -3,6 +3,7 @@
 * general app setup
 *************************************************/
 var express = require('express');
+var handlebars = require('express-handlebars');
 var app = express();
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 app.engine('handlebars', handlebars.engine);
@@ -234,7 +235,8 @@ app.post('/editBook', function(req, res, next){
 
 app.get('/editAuthor', function(req, res, next){
 	var author_id = req.query.id;
-	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id WHERE a.id = ? LIMIT 1",
+	// get the current author's information
+	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id WHERE a.id = ? LIMIT 1",
 		[author_id],
 		function(err, rows, result){
 		if(err){
@@ -244,7 +246,9 @@ app.get('/editAuthor', function(req, res, next){
 		} else {
 			var context = {};
 			context.author_info = rows[0];
-			mysql.pool.query("SELECT country FROM Country", function(err, rows, result){
+
+			// get a list of countries
+			mysql.pool.query("SELECT country, id AS country_id FROM Country", function(err, rows, result){
 				if(err){
 					res.send({response: "Database error"});
 					next(err);
@@ -267,12 +271,12 @@ app.post('/editAuthor', function(req, res, next){
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
 	var birthdate = req.body.author_dob;
-	var country = req.body.author_country;
+	var country_id = req.body.author_country;
 	var gender = req.body.gender;
 	var author_id = req.body.author_id;
 
-	mysql.pool.query("UPDATE Author SET firstName = ?, lastName = ?, dob = ?, country_id = (SELECT id FROM Country WHERE country=?), gender = ? WHERE Author.id = ?", 
-		[first_name, last_name, birthdate, country, gender, author_id], 
+	mysql.pool.query("UPDATE Author SET firstName = ?, lastName = ?, dob = ?, country_id = ?, gender = ? WHERE Author.id = ?", 
+		[first_name, last_name, birthdate, country_id, gender, author_id], 
 		function(err, result){
 		if(err){
 			res.send({response: "Database error"});
