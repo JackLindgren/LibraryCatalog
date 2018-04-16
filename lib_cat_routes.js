@@ -114,7 +114,7 @@ app.get('/addBook', function(req, res, render){
 			return;
 		} else {
 			author_names = rows;
-			mysql.pool.query("SELECT language FROM Language", function(err, rows, result){
+			mysql.pool.query("SELECT language, id AS language_id FROM Language", function(err, rows, result){
 				if(err){
 					res.send({response: "Database error"});
 					next(err);
@@ -142,12 +142,13 @@ app.post('/addBook', function(req, res, next){
 	var last_name = req.body.author_last_name;
 	var language = req.body.book_language;
 	var year = req.body.book_year;
+	var language_id = req.body.book_language;
 
 	console.log(title, first_name, last_name, language, year);
 
 	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id) \
-		VALUES (?, ?, (SELECT id FROM Language WHERE language=?), (SELECT id FROM Author WHERE firstName=? AND lastName=?))", 
-		[title, year, language, first_name, last_name], 
+		VALUES (?, ?, ?, (SELECT id FROM Author WHERE firstName=? AND lastName=?))", 
+		[title, year, language_id, first_name, last_name], 
 		function(err, result){
 		if(err){
 			console.log(err);
@@ -192,6 +193,19 @@ app.post('/addAuthor', function(req, res, next){
 *************************************************/
 app.get('/editBook', function(req, res, next){
 	var book_id = req.query.id;
+	
+	var context = {};
+
+	if(book_id){
+		context.route = "/editBook";
+	} else {
+		context.route = "/addBook";
+	}
+
+	// send back a list of author names and languages 
+	var author_names = [];
+	var languages = [];
+
 	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
 		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id \
 		FROM Book AS b \
@@ -206,9 +220,26 @@ app.get('/editBook', function(req, res, next){
 			next(err);
 			return;
 		} else {
-			var context = {};
 			context.book_info = rows[0];
-			res.render('editBook', context); 
+			mysql.pool.query("SELECT language, id AS language_id FROM Language", function(err, rows, result){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					context.languages = rows;
+					mysql.pool.query("SELECT firstName, lastName FROM Author", function(err, rows, result){
+						if(err){
+							res.send({response: "Database error"});
+							next(err);
+							return;
+						} else {
+							context.author_names = rows;
+							res.render('editBook', context);
+						}
+					});
+				}
+			});
 		}
 	});
 });
@@ -235,6 +266,7 @@ app.post('/editBook', function(req, res, next){
 
 app.get('/editAuthor', function(req, res, next){
 	var author_id = req.query.id;
+
 	// get the current author's information
 	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id WHERE a.id = ? LIMIT 1",
 		[author_id],
