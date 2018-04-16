@@ -99,39 +99,6 @@ app.get('/listAuthors', function(req, res, render){
 * - new author form
 * - post a new author
 *************************************************/
-// Render the book creation form
-app.get('/addBook', function(req, res, render){
-	console.log("Rendering the book form");
-	
-	// send back a list of author names and languages 
-	var author_names = [];
-	var languages = [];
-	
-	mysql.pool.query("SELECT firstName, lastName FROM Author", function(err, rows, result){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else {
-			author_names = rows;
-			mysql.pool.query("SELECT language, id AS language_id FROM Language", function(err, rows, result){
-				if(err){
-					res.send({response: "Database error"});
-					next(err);
-					return;
-				} else {
-					languages = rows;
-					var context = {};
-					context.languages = languages;
-					context.author_names = author_names;
-					res.render('bookForm', context);
-				}
-			});
-		}
-	});
-	// res.render('bookForm');
-});
-
 // add a book - POST
 app.post('/addBook', function(req, res, next){
 	console.log("POST request received on the server-side");
