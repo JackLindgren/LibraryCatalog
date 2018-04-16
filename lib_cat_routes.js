@@ -43,8 +43,7 @@ app.get('/listBooks', function(req, res, next){
 		FROM Book AS b \
 		LEFT JOIN Author AS a ON b.author_id = a.id \
 		LEFT JOIN Country AS c ON a.country_id = c.id \
-		LEFT JOIN Language AS l ON b.language_id = l.id \
-		WHERE b.id ";
+		LEFT JOIN Language AS l ON b.language_id = l.id WHERE b.id ";
 
 	// take arguments in the query string that limit the search by author, country, or language (using the ID)
 	if(req.query.author){
@@ -94,9 +93,7 @@ app.get('/listAuthors', function(req, res, render){
 
 /*************************************************
 * Creation requests
-* - new book form
 * - post a new book
-* - new author form
 * - post a new author
 *************************************************/
 // add a book - POST
@@ -129,6 +126,7 @@ app.post('/addBook', function(req, res, next){
 	});
 });
 
+// add an author - POST
 app.post('/addAuthor', function(req, res, next){
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
@@ -138,8 +136,7 @@ app.post('/addAuthor', function(req, res, next){
 
 	console.log(birthdate);
 
-	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id, gender) \
-		VALUES (?, ?, ?, (SELECT id FROM Country WHERE country=?), ?)", 
+	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id, gender) VALUES (?, ?, ?, ?, ?)", 
 		[first_name, last_name, birthdate, country, gender], 
 		function(err, result){
 		if(err){
@@ -152,6 +149,7 @@ app.post('/addAuthor', function(req, res, next){
 		}
 	});
 });
+
 
 /*************************************************
 * Edit requests
@@ -232,7 +230,15 @@ app.post('/editBook', function(req, res, next){
 });
 
 app.get('/editAuthor', function(req, res, next){
+	
 	var author_id = req.query.id;
+
+	var context = {};
+	if(author_id){
+		context.route = "/editAuthor";
+	} else {
+		context.route = "/addAuthor";
+	}
 
 	// get the current author's information
 	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id WHERE a.id = ? LIMIT 1",
@@ -243,21 +249,16 @@ app.get('/editAuthor', function(req, res, next){
 			next(err);
 			return;
 		} else {
-			var context = {};
+
 			context.author_info = rows[0];
 
-			// get a list of countries
+			// get the current valid countries
 			mysql.pool.query("SELECT country, id AS country_id FROM Country", function(err, rows, result){
 				if(err){
 					res.send({response: "Database error"});
 					next(err);
 					return;
 				} else {
-					if(author_id){
-						context.route = "/editAuthor";
-					} else {
-						context.route = "/addAuthor";
-					}
 					context.countries = rows;
 					res.render('editAuthor', context);
 				}
@@ -288,6 +289,7 @@ app.post('/editAuthor', function(req, res, next){
 	});
 });
 
+
 /*************************************************
 * Delete requests
 * - delete book
@@ -308,15 +310,33 @@ app.get('/removeBook', function(req, res, next){
 });
 
 app.get('/removeAuthor', function(req, res, next){
-	mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.id], function(err, result){
+	mysql.pool.query("DELETE FROM Book WHERE author_id = ?", [req.query.id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
 			return;
 		} else {
-			res.redirect("/listAuthors");
+			mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.id], function(err, result){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					res.redirect("/listAuthors");
+				}
+			});
 		}
 	});
+
+	// mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.id], function(err, result){
+	// 	if(err){
+	// 		res.send({response: "Database error"});
+	// 		next(err);
+	// 		return;
+	// 	} else {
+	// 		res.redirect("/listAuthors");
+	// 	}
+	// });
 });
 
 
