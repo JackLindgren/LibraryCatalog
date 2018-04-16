@@ -1,0 +1,20 @@
+<h1>Users</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/listUsers">Users</a>
+<a href="/editBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<a href="/editUser">Add User</a>
+<table>
+	<tr>
+		<th>User Name</th>
+		<th>User Email</th>
+	</tr>
+
+	{{#each users}}
+	<tr>
+		<td>{{this.user_name}}</td>
+		<td>{{this.user_email}}</td>
+	<tr>
+	{{/each}}
+</table>

@@ -1,4 +1,3 @@
-
 /*************************************************
 * general app setup
 *************************************************/
@@ -90,6 +89,22 @@ app.get('/listAuthors', function(req, res, render){
 	});
 });
 
+// render a list of users
+app.get('/listUsers', function(req, res, render){
+	console.log("request received for user data");
+	mysql.pool.query("SELECT id, user_name, user_email FROM User", function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} 
+		var context = {};
+		context.users = rows;
+		console.log(context);
+		res.render('userList', context);
+	});
+});
+
 
 /*************************************************
 * Creation requests
@@ -146,6 +161,24 @@ app.post('/addAuthor', function(req, res, next){
 		} else {
 			console.log("Successful author entry");
 			res.redirect("/listAuthors");
+		}
+	});
+});
+
+app.post('/addUser', function(req, res, next){
+	var user_name = req.body.user_name;
+	var user_email = req.body.user_email;
+
+	mysql.pool.query("INSERT INTO User (user_name, user_email) VALUES (?, ?)",
+		[user_name, user_email],
+		function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			console.log("Successful user entry");
+			res.redirect("/listUsers");
 		}
 	});
 });
@@ -289,6 +322,26 @@ app.post('/editAuthor', function(req, res, next){
 	});
 });
 
+app.get('/editUser', function(req, res, next){
+	var user_id = req.query.id;
+	var context = {};
+	if(user_id){
+		context.route = '/editUser';
+	} else {
+		context.route = '/addUser';
+	}
+	mysql.pool.query("SELECT id, user_name, user_email FROM User WHERE id = ? LIMIT 1",
+		[user_id],
+		function(err, row, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.render('editUser', context);
+		}
+	});
+});
 
 /*************************************************
 * Delete requests
