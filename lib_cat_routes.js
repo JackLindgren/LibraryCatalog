@@ -233,6 +233,7 @@ app.get('/editBook', function(req, res, next){
 							return;
 						} else {
 							context.author_names = rows;
+							console.log(context);
 							res.render('editBook', context);
 						}
 					});
