@@ -205,7 +205,7 @@ app.get('/editBook', function(req, res, next){
 	var languages = [];
 
 	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
-		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id \
+		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id \
 		FROM Book AS b \
 		LEFT JOIN Author AS a ON b.author_id = a.id \
 		LEFT JOIN Country AS c ON a.country_id = c.id \
