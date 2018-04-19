@@ -105,6 +105,42 @@ app.get('/listUsers', function(req, res, render){
 	});
 });
 
+app.get('/stats', function(req, res, render){
+	var context = {};
+
+	mysql.pool.query("SELECT Language.language, COUNT(Book.id) AS blcount FROM Book LEFT JOIN Language ON Book.language_id = Language.id GROUP BY Language.id ORDER BY blcount DESC", function(err, rows){
+		if(err){
+			console.log(err);
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		}
+		context.languages = rows;
+
+		mysql.pool.query("SELECT Country.country, COUNT(Book.id) AS bookCount FROM Book LEFT JOIN Author ON Book.author_id = Author.id LEFT JOIN Country ON Author.country_id = Country.id GROUP BY Country.id ORDER BY bookCount DESC", function(err, rows){
+			if(err){
+				console.log(err);
+				// res.send({response: "Database error"});
+				// next(err);
+				// return;
+			}
+			context.countries = rows;
+			mysql.pool.query("SELECT a.firstName, a.lastName, COUNT(Book.id) AS bookCount FROM Book LEFT JOIN Author ON Book.author_id = Author.id GROUP BY a.id ORDER BY bookCount DESC LIMIT 20", function(err, rows){
+				if(err){
+					console.log(err);
+					// res.send({response: "Database error"});
+					// next(err);
+					// return;
+				}
+				context.authors = rows;
+				res.render('statsView', context);
+
+			});
+		});
+
+	});
+
+});
 
 /*************************************************
 * Creation requests
