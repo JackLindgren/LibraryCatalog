@@ -250,8 +250,11 @@ app.post('/editBook', function(req, res, next){
 	var language = req.body.book_language;
 	var year = req.body.book_year;
 	var book_id = parseInt(req.body.book_id);
+	var lang_id = parseInt(req.body.book_language);
 
-	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = (SELECT id FROM Language WHERE language = ?), author_id = (SELECT id FROM Author WHERE firstName = ? AND lastName = ?) WHERE Book.id = ? ", [title, year, language, first_name, last_name, book_id], function(err, result){
+	console.log(req.body);
+
+	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = (SELECT id FROM Author WHERE firstName = ? AND lastName = ?) WHERE Book.id = ? ", [title, year, lang_id, first_name, last_name, book_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
