@@ -34,3 +34,16 @@
 	{{/each}}
 </table>
 
+<h1>Authors</h1>
+<table>
+	<tr>
+		<th>Author</th>
+		<th>Count</th>
+	</tr>
+	{{#each authors}}
+	<tr>
+		<td>{{this.lastName}}, {{this.firstName}}</td>
+		<td>{{this.bookCount}}</td>
+	</tr>
+	{{/each}}
+</table>
