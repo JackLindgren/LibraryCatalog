@@ -7,7 +7,11 @@
 <a href="/editUser">Add User</a>
 
 <h1>Languages</h1>
-<table>
+
+<div id="language_chart"></div>
+<button onclick="drawLanguageChart(true)">Hide English</button>
+<button onclick="drawLanguageChart(false)">Show English</button>
+<table id="language_stats">
 	<tr>
 		<th>Language</th>
 		<th>Count</th>
@@ -21,6 +25,11 @@
 </table>
 
 <h1>Countries</h1>
+
+<div id="country_chart"></div>
+<button onclick="drawCountryChart(true)">Hide USA</button>
+<button onclick="drawCountryChart(false)">Show USA</button>
+
 <table>
 	<tr>
 		<th>Country</th>
@@ -47,3 +56,22 @@
 	</tr>
 	{{/each}}
 </table>
+
+<script>
+var languages = [
+	["Language", "Count"],
+	{{#each languages}}
+	["{{this.language}}", {{this.blcount}}],
+	{{/each}}
+	];
+
+var countries = [
+	["Country", "Count"],
+	{{#each countries}}
+	["{{this.country}}", {{this.bookCount}}],
+	{{/each}}
+	];
+
+</script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="charts.js"></script>
