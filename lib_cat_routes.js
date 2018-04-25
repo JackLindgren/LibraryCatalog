@@ -77,7 +77,7 @@ app.get('/listBooks', function(req, res, next){
 
 // Render a list of authors
 app.get('/listAuthors', function(req, res, render){
-	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id", function(err, rows, fields){
+	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id ORDER BY a.lastName", function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);

@@ -11,14 +11,17 @@
 		<th>First Name</th>
 		<th>Birthdate</th>
 		<th>Country</th>
+		<th>Gender</th>
 	</tr>
 
 	{{#each authors}}
 	<tr>
-		<td><a href="/editAuthor?id={{this.id}}">{{this.lastName}}</a></td>
+		<td><a href="/listBooks?author={{this.id}}">{{this.lastName}}</a></td>
 		<td>{{this.firstName}}</td>
 		<td>{{this.dob}}</td>
 		<td>{{this.country}}</td>
+		<td>{{this.gender}}</td>
+		<td><a href="/editAuthor?id={{this.id}}">Edit</a></td>
 		<td><a href="/removeAuthor?id={{this.id}}">Delete</a></td>
 	<tr>
 	{{/each}}
