@@ -57,6 +57,21 @@
 	{{/each}}
 </table>
 
+<h1>Decades</h1>
+<div id="decade_chart"></div>
+<table>
+	<tr>
+		<th>Decade</th>
+		<th>Count</th>
+	</tr>
+	{{#each decades}}
+	<tr>
+		<td>{{this.decade}}</td>
+		<td>{{this.count}}</td>
+	</tr>
+	{{/each}}
+</table>
+
 <script>
 var languages = [
 	["Language", "Count"],
@@ -69,6 +84,13 @@ var countries = [
 	["Country", "Count"],
 	{{#each countries}}
 	["{{this.country}}", {{this.bookCount}}],
+	{{/each}}
+	];
+
+var decades = [
+	["Decade", "Count"],
+	{{#each decades}}
+	["{{this.decade}}", {{this.count}}],
 	{{/each}}
 	];
 

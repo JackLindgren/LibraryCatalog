@@ -143,9 +143,13 @@ app.get('/stats', function(req, res, render){
 					// return;
 				}
 				context.authors = rows;
-				console.log(context);
-				res.render('statsView', context);
-
+				mysql.pool.query("SELECT year DIV 10 * 10 AS decade, COUNT(id) AS count FROM Book GROUP BY decade ORDER BY count DESC, decade DESC", function(err, rows){
+					if(err){
+						console.log(err);
+					}
+					context.decades = rows;
+					res.render('statsView', context);
+				});
 			});
 		});
 

@@ -20,6 +20,13 @@ for(var language in languages){
 function drawCharts() {
 	drawLanguageChart(false);
 	drawCountryChart(false);
+	drawDecadesChart();
+}
+
+function drawDecadesChart(){
+	var decade_data = google.visualization.arrayToDataTable(decades);
+	var decade_chart = new google.visualization.PieChart(document.getElementById('decade_chart'));
+	decade_chart.draw(decade_data);
 }
 
 function drawCountryChart(hide_usa){
