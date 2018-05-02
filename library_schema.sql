@@ -1,4 +1,3 @@
--- ***************************************************;
 DROP TABLE `BookUser`;
 DROP TABLE `Book`;
 DROP TABLE `Author`;
@@ -6,8 +5,11 @@ DROP TABLE `User`;
 DROP TABLE `Format`;
 DROP TABLE `Country`;
 DROP TABLE `Language`;
+DROP TABLE `BookAuthor`;
+DROP TABLE `SubCategory`;
+DROP TABLE `Category`;
 
--- ************************************** `User`
+-- `User`
 CREATE TABLE `User`
 (
  `id`         INT NOT NULL AUTO_INCREMENT ,
@@ -15,18 +17,18 @@ CREATE TABLE `User`
  `user_email` VARCHAR(45) NOT NULL UNIQUE ,
 
  PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- ************************************** `Format`
+-- `Format`
 CREATE TABLE `Format`
 (
  `id`     INT NOT NULL AUTO_INCREMENT ,
  `format` VARCHAR(45) NOT NULL UNIQUE ,
 
  PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- ************************************** `Country`
+-- `Country`
 CREATE TABLE `Country`
 (
  `id`      INT NOT NULL AUTO_INCREMENT ,
@@ -34,9 +36,9 @@ CREATE TABLE `Country`
  `region`  VARCHAR(45) NOT NULL ,
 
  PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- ************************************** `Language`
+-- `Language`
 CREATE TABLE `Language`
 (
  `id`              INT NOT NULL AUTO_INCREMENT ,
@@ -44,25 +46,50 @@ CREATE TABLE `Language`
  `language_family` VARCHAR(45) NOT NULL ,
 
  PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- ************************************** `Author`
+-- `Author`
 CREATE TABLE `Author`
 (
  `id`         INT NOT NULL AUTO_INCREMENT ,
  `firstName`  VARCHAR(50) NOT NULL ,
  `lastName`	  VARCHAR(50) NOT NULL ,
  `dob`        DATE ,
+ `dod`        DATE ,
  `country_id` INT NOT NULL ,
  `gender`     CHAR(1) ,
 
- PRIMARY KEY (`id`),
- KEY `fkIdx_19` (`country_id`),
- CONSTRAINT `FK_19` FOREIGN KEY `fkIdx_19` (`country_id`) REFERENCES `Country` (`id`),
- CONSTRAINT `AuthorDOB` UNIQUE(`firstName`, `lastName`, `dob`)
-);
+ PRIMARY KEY (`id`) ,
 
--- ************************************** `Book`
+ FOREIGN KEY (`country_id`)
+ 	REFERENCES `Country` (`id`) ,
+
+ CONSTRAINT `AuthorDOB` UNIQUE(`firstName`, `lastName`, `dob`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- `Category`
+CREATE TABLE `Category`
+(
+ `id` INT NOT NULL AUTO_INCREMENT ,
+ `name` VARCHAR(100) NOT NULL UNIQUE,
+
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- `SubCategory`
+CREATE TABLE `SubCategory`
+(
+ `id` INT NOT NULL AUTO_INCREMENT ,
+ `name` VARCHAR(100) NOT NULL UNIQUE,
+ `category_id` INT NOT NULL ,
+
+ PRIMARY KEY (`id`) ,
+
+ FOREIGN KEY (`category_id`)
+ 	REFERENCES `Category` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- `Book`
 CREATE TABLE `Book`
 (
  `id`           INT NOT NULL AUTO_INCREMENT ,
@@ -70,17 +97,24 @@ CREATE TABLE `Book`
  `year`         INT NOT NULL ,
  `language_id`  INT NOT NULL ,
  `author_id`    INT NOT NULL ,
- `is_anthology` INT NOT NULL DEFAULT 0,
+ `is_anthology` INT NOT NULL DEFAULT 0 ,
+ `category_id`  INT ,
 
- PRIMARY KEY (`id`),
- KEY `fkIdx_29` (`language_id`),
- CONSTRAINT `FK_29` FOREIGN KEY `fkIdx_29` (`language_id`) REFERENCES `Language` (`id`),
- KEY `fkIdx_33` (`author_id`),
- CONSTRAINT `FK_33` FOREIGN KEY `fkIdx_33` (`author_id`) REFERENCES `Author` (`id`),
+ PRIMARY KEY (`id`) ,
+
+ FOREIGN KEY (`language_id`)
+ 	REFERENCES `Language` (`id`) ,
+
+ FOREIGN KEY (`author_id`)
+ 	REFERENCES `Author` (`id`) ,
+
+ FOREIGN KEY (`category_id`)
+ 	REFERENCES `SubCategory` (`id`) ,
+
  CONSTRAINT `TitleAuthorYear` UNIQUE(`title`, `year`, `author_id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- ************************************** `BookUser`
+-- `BookUser`
 CREATE TABLE `BookUser`
 (
  `book_id`    INT NOT NULL ,
@@ -90,11 +124,29 @@ CREATE TABLE `BookUser`
  `date_read`  DATE ,
  `format_id`  INT NOT NULL ,
 
- PRIMARY KEY (`book_id`, `user_id`),
- KEY `fkIdx_60` (`book_id`),
- CONSTRAINT `FK_60` FOREIGN KEY `fkIdx_60` (`book_id`) REFERENCES `Book` (`id`),
- KEY `fkIdx_65` (`user_id`),
- CONSTRAINT `FK_65` FOREIGN KEY `fkIdx_65` (`user_id`) REFERENCES `User` (`id`),
- KEY `fkIdx_74` (`format_id`),
- CONSTRAINT `FK_74` FOREIGN KEY `fkIdx_74` (`format_id`) REFERENCES `Format` (`id`)
-);
+ PRIMARY KEY (`book_id`, `user_id`, `format_id`) ,
+
+ FOREIGN KEY (`book_id`)
+ 	REFERENCES `Book` (`id`) ,
+
+ FOREIGN KEY (`user_id`)
+ 	REFERENCES `User` (`id`) ,
+
+ FOREIGN KEY (`format_id`)
+ 	REFERENCES `Format` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- `BookAuthor`
+CREATE TABLE `BookAuthor`
+(
+ `book_id`   INT NOT NULL ,
+ `author_id` INT NOT NULL ,
+
+ PRIMARY KEY (`book_id`, `author_id`) ,
+
+ FOREIGN KEY (`book_id`)
+ 	REFERENCES `Book` (`id`) ,
+
+ FOREIGN KEY (`author_id`)
+ 	REFERENCES `Author` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
