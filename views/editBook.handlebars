@@ -30,6 +30,11 @@
 						{{/each}}
 					</select>
 		Year:     	<input type="text" name="book_year" id="book_year" value="{{book_info.year}}"><br>
+		Category:	<select name="book_category">
+						{{#each categories}}
+						<option value="{{this.id}}">{{this.name}}</option>
+						{{/each}}
+					</select><br>
 		<input type="hidden" name="book_id" id="book_id" value="{{book_info.book_id}}">
 		<input type="hidden" name="language_id" id="language_id" value="{{book_info.language_id}}">
 

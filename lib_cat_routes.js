@@ -38,11 +38,14 @@ app.get('/', function(req, res, next){
 app.get('/listBooks', function(req, res, next){
 	console.log("Request received for table data");
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
-		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender \
+		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
+		sc.name AS category_name \
 		FROM Book AS b \
 		LEFT JOIN Author AS a ON b.author_id = a.id \
 		LEFT JOIN Country AS c ON a.country_id = c.id \
-		LEFT JOIN Language AS l ON b.language_id = l.id WHERE b.id ";
+		LEFT JOIN Language AS l ON b.language_id = l.id \
+		LEFT JOIN SubCategory AS sc ON b.category_id = sc.id \
+		WHERE b.id ";
 
 	// take arguments in the query string that limit the search by author, country, or language (using the ID)
 	if(req.query.author){
@@ -59,6 +62,9 @@ app.get('/listBooks', function(req, res, next){
 	}
 	if(req.query.gender){
 		book_query += " AND a.gender = " + "'" + req.query.gender + "'";
+	}
+	if(req.query.category){
+		book_query += " AND b.category_id = " + req.query.category;
 	}
 
 	book_query += " ORDER BY a.lastName, b.year";
@@ -77,7 +83,11 @@ app.get('/listBooks', function(req, res, next){
 
 // Render a list of authors
 app.get('/listAuthors', function(req, res, render){
-	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id ORDER BY a.lastName", function(err, rows, fields){
+	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country \
+		FROM Author AS a \
+		LEFT JOIN Country ON a.country_id = Country.id \
+		ORDER BY a.lastName", 
+	function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -159,12 +169,13 @@ app.post('/addBook', function(req, res, next){
 	var language = req.body.book_language;
 	var year = req.body.book_year;
 	var language_id = req.body.book_language;
+	var category_id = req.body.book_category;
 
 	console.log(title, first_name, last_name, language, year);
 
-	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id) \
-		VALUES (?, ?, ?, (SELECT id FROM Author WHERE firstName=? AND lastName=?))", 
-		[title, year, language_id, first_name, last_name], 
+	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id, category_id) \
+		VALUES (?, ?, ?, (SELECT id FROM Author WHERE firstName=? AND lastName=?), ?)", 
+		[title, year, language_id, first_name, last_name, category_id], 
 		function(err, result){
 		if(err){
 			console.log(err);
@@ -270,8 +281,16 @@ app.get('/editBook', function(req, res, next){
 							return;
 						} else {
 							context.author_names = rows;
-							console.log(context);
-							res.render('editBook', context);
+							mysql.pool.query("SELECT id, name FROM SubCategory", function(err, rows, result){
+								if(err){
+									res.send({response: "Database error"});
+									next(err);
+									return;
+								} else {
+									context.categories = rows;
+									res.render('editBook', context);
+								}
+							});
 						}
 					});
 				}
@@ -288,10 +307,12 @@ app.post('/editBook', function(req, res, next){
 	var year = req.body.book_year;
 	var book_id = parseInt(req.body.book_id);
 	var lang_id = parseInt(req.body.book_language);
+	var category_id = req.body.book_category
 
 	console.log(req.body);
 
-	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = (SELECT id FROM Author WHERE firstName = ? AND lastName = ?) WHERE Book.id = ? ", [title, year, lang_id, first_name, last_name, book_id], function(err, result){
+	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = (SELECT id FROM Author WHERE firstName = ? AND lastName = ?), category_id = ? WHERE Book.id = ? ", 
+		[title, year, lang_id, first_name, last_name, category_id, book_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
