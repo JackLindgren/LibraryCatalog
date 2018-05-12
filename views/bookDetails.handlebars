@@ -1,0 +1,12 @@
+<h1>{{book_info.title}}</h1>
+
+<br>Title: <b>{{book_info.title}}</b>
+<br>Author: {{book_info.lastName}}, {{book_info.firstName}}
+<br>Secondary Authors: {{#each addl_authors}}
+{{this.firstName}} {{this.lastName}},
+{{/each}}
+<br>Year: {{book_info.year}}
+<br>Category: {{book_info.categoryName}}
+<br>Sub-Category: {{book_info.subCategoryName}}
+<br>Language: {{book_info.language}}
+<br>Country: {{book_info.country}}

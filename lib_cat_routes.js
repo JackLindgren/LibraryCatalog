@@ -158,6 +158,45 @@ app.get('/stats', function(req, res, render){
 });
 
 /*************************************************
+*
+*
+*************************************************/
+
+app.get('/bookDetails', function(req, res, next){
+	var context = {};
+	var book_id = req.query.id;
+	mysql.pool.query("SELECT Book.title, Book.year, Category.name AS categoryName, SubCategory.name AS subCategoryName, Language.language, Author.firstName, Author.lastName, Country.country \
+		FROM Book \
+		INNER JOIN SubCategory ON Book.category_id = SubCategory.id \
+		INNER JOIN Category ON SubCategory.category_id = Category.id \
+		INNER JOIN Author ON Book.author_id = Author.id \
+		INNER JOIN Country ON Author.country_id = Country.id \
+		INNER JOIN Language ON Book.language_id = Language.id \
+		WHERE Book.id = ?", [book_id], function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			context.book_info = rows[0];
+			mysql.pool.query("SELECT Author.firstName, Author.lastName \
+				FROM BookAuthor \
+				INNER JOIN Author ON BookAuthor.author_id = Author.id \
+				WHERE BookAuthor.book_id = ?", [book_id], function(err, rows, fields){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					context.addl_authors = rows;
+					res.render('bookDetails', context);
+				}
+			})
+		}
+	});
+});
+
+/*************************************************
 * Creation requests
 * - post a new book
 * - post a new author
@@ -405,6 +444,56 @@ app.get('/editUser', function(req, res, next){
 			return;
 		} else {
 			res.render('editUser', context);
+		}
+	});
+});
+
+app.get('/addSecondaryAuthor', function(req, res, next){
+	var book_id = req.query.id;
+	
+	var context = {};
+
+	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
+		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id \
+		FROM Book AS b \
+		LEFT JOIN Author AS a ON b.author_id = a.id \
+		LEFT JOIN Country AS c ON a.country_id = c.id \
+		LEFT JOIN Language AS l ON b.language_id = l.id \
+		WHERE b.id = ? LIMIT 1", 
+		[book_id],
+		function(err, rows, result){
+			if(err){
+				console.log("error");
+			} else {
+				context.book_info = rows[0];
+				mysql.pool.query("SELECT id, firstName, lastName FROM Author", function(err, rows, result){
+					if(err){
+						res.send({response: "Database error"});
+						next(err);
+						return;
+					} else {
+						context.author_names = rows;
+						res.render('addSecondaryAuthor', context);
+					}
+				});
+			}
+		}
+	)
+});
+
+
+app.post('/addSecondaryAuthor', function(req, res, next){
+	var book_id = req.body.book_id;
+	var author_id = req.body.author;
+	console.log(book_id + " " + author_id);
+
+	mysql.pool.query("INSERT INTO BookAuthor (book_id, author_id) VALUES (?, ?)", [book_id, author_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('/editBook?id=' + book_id);
 		}
 	});
 });

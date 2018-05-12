@@ -1,0 +1,31 @@
+<h1>Add Book</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/listUsers">Users</a>
+<a href="/editBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<a href="/editUser">Add User</a>
+
+<p>Title: {{book_info.title}}</p>
+<p>Primary Author: {{book_info.lastName}}, {{book_info.firstName}}</p>
+
+
+<form id="second_author_form" action="addSecondaryAuthor" method="post">
+
+	<fieldset id="form_field">
+
+		<legend id="form_legend">Choose an Author</legend>
+		<select name="author" id="second_author">
+			{{#each author_names}}
+			<option value="{{this.id}}" id="author_{{this.author_id}}">{{this.lastName}}, {{this.firstName}}</option>
+			{{/each}}
+		</select>
+
+		<input type="hidden" name="book_id" id="book_id" value="{{book_info.book_id}}">
+
+		<input type="submit" id="secondary_author" value="Submit">
+
+	</fieldset>
+
+</form>
+<script src="selectionSetBook.js"></script>
