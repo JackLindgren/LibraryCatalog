@@ -207,8 +207,9 @@ app.post('/addBook', function(req, res, next){
 	console.log(req.body);
 
 	var title = req.body.book_title;
-	var first_name = req.body.author_first_name;
-	var last_name = req.body.author_last_name;
+	// var first_name = req.body.author_first_name;
+	// var last_name = req.body.author_last_name;
+	var author_id = req.body.author_id;
 	var language = req.body.book_language;
 	var year = req.body.book_year;
 	var language_id = req.body.book_language;
@@ -217,8 +218,8 @@ app.post('/addBook', function(req, res, next){
 	console.log(title, first_name, last_name, language, year);
 
 	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id, category_id) \
-		VALUES (?, ?, ?, (SELECT id FROM Author WHERE firstName=? AND lastName=?), ?)", 
-		[title, year, language_id, first_name, last_name, category_id], 
+		VALUES (?, ?, ?, ?, ?)", 
+		[title, year, language_id, author_id, category_id], 
 		function(err, result){
 		if(err){
 			console.log(err);
@@ -296,11 +297,13 @@ app.get('/editBook', function(req, res, next){
 	var languages = [];
 
 	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
-		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id \
+		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id, \
+		b.category_id, s.name \
 		FROM Book AS b \
 		LEFT JOIN Author AS a ON b.author_id = a.id \
 		LEFT JOIN Country AS c ON a.country_id = c.id \
 		LEFT JOIN Language AS l ON b.language_id = l.id \
+		LEFT JOIN SubCategory AS s ON b.category_id = s.category_id \
 		WHERE b.id = ? LIMIT 1", 
 		[book_id], 
 		function(err, rows, result){
@@ -310,21 +313,21 @@ app.get('/editBook', function(req, res, next){
 			return;
 		} else {
 			context.book_info = rows[0];
-			mysql.pool.query("SELECT language, id AS language_id FROM Language", function(err, rows, result){
+			mysql.pool.query("SELECT language, id AS language_id FROM Language ORDER BY language", function(err, rows, result){
 				if(err){
 					res.send({response: "Database error"});
 					next(err);
 					return;
 				} else {
 					context.languages = rows;
-					mysql.pool.query("SELECT firstName, lastName FROM Author", function(err, rows, result){
+					mysql.pool.query("SELECT id, firstName, lastName FROM Author ORDER BY lastName, firstName", function(err, rows, result){
 						if(err){
 							res.send({response: "Database error"});
 							next(err);
 							return;
 						} else {
 							context.author_names = rows;
-							mysql.pool.query("SELECT id, name FROM SubCategory", function(err, rows, result){
+							mysql.pool.query("SELECT id, name FROM SubCategory ORDER BY name", function(err, rows, result){
 								if(err){
 									res.send({response: "Database error"});
 									next(err);
@@ -344,18 +347,21 @@ app.get('/editBook', function(req, res, next){
 
 app.post('/editBook', function(req, res, next){
 	var title = req.body.book_title;
-	var first_name = req.body.author_first_name;
-	var last_name = req.body.author_last_name;
+	var author_id = req.body.author;
 	var language = req.body.book_language;
 	var year = req.body.book_year;
 	var book_id = parseInt(req.body.book_id);
 	var lang_id = parseInt(req.body.book_language);
 	var category_id = req.body.book_category
 
+	var addl_authors = req.body.addl_authors;
+
+	console.log("Additional authors: " + addl_authors);
+
 	console.log(req.body);
 
-	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = (SELECT id FROM Author WHERE firstName = ? AND lastName = ?), category_id = ? WHERE Book.id = ? ", 
-		[title, year, lang_id, first_name, last_name, category_id, book_id], function(err, result){
+	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ? WHERE Book.id = ? ", 
+		[title, year, lang_id, author_id, category_id, book_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
