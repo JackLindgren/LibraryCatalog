@@ -356,8 +356,6 @@ app.post('/editBook', function(req, res, next){
 
 	var addl_authors = req.body.addl_authors;
 
-	console.log("Additional authors: " + addl_authors);
-
 	console.log(req.body);
 
 	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ? WHERE Book.id = ? ", 
@@ -368,7 +366,31 @@ app.post('/editBook', function(req, res, next){
 			return;
 		} else {
 			console.log("Successful book entry");
-			res.redirect("/listBooks");
+			if(addl_authors){
+				var multi_author_statement = "INSERT INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
+				var multi_author_vars;
+				if(typeof(addl_authors) == "string"){
+					multi_author_vars = [book_id, addl_authors];
+				} else {
+					multi_author_vars = [book_id, addl_authors[0]];
+					for(var i = 1; i < addl_authors.length; i++){
+						multi_author_statement += ", (?, ?) ";
+						multi_author_vars.push(book_id);
+						multi_author_vars.push(addl_authors[i]);
+					}
+				}
+				mysql.pool.query(multi_author_statement, multi_author_vars, function(err, result){
+					if(err){
+						res.send({response: "Database error"});
+						next(err);
+						return;
+					} else {
+						res.redirect("/listBooks");
+					}
+				})
+			} else {
+				res.redirect("/listBooks");
+			}
 		}
 	});
 });
