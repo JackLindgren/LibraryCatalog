@@ -5,14 +5,19 @@
 <a href="/editBook">Add Book</a>
 <a href="/editAuthor">Add Author</a>
 <a href="/editUser">Add User</a>
+
 <form id="user_form" action="{{route}}" method="post">
 
 	<fieldset id="form_field">
 
-		<legend id="form_legend">Enter a new book</legend>
+		<legend id="form_legend">Enter User Information</legend>
 		
 		User Name:		<input type="text" name="user_name" id="user_name" value="{{user_info.user_name}}"><br>
-		User Email:		<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}"><br>
+		User Email:		{{#if editing}}
+						<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}" readonly><br>
+						{{else}}
+						<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}"><br>
+						{{/if}}
 		
 		<input type="submit" id="new_user" value="Submit">
 	

@@ -66,6 +66,9 @@ app.get('/listBooks', function(req, res, next){
 	if(req.query.category){
 		book_query += " AND b.category_id = " + req.query.category;
 	}
+	if(req.query.user){
+		book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = " + req.query.user + ")";
+	}
 
 	book_query += " ORDER BY a.lastName, b.year";
 
@@ -275,6 +278,69 @@ app.post('/addUser', function(req, res, next){
 	});
 });
 
+/*************************************************
+* User-book management
+*************************************************/
+app.get('/bookUser', function(req, res, next){
+	var context = {};
+	mysql.pool.query("SELECT id, user_name, user_email FROM User", function(err, rows, result){
+		if(err){
+			return;
+		} else {
+			context.users = rows;
+			mysql.pool.query("SELECT Book.id, Book.title, Author.lastName FROM Book INNER JOIN Author ON Book.author_id = Author.id ORDER BY Book.title", function(err, rows, result){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					context.books = rows;
+					mysql.pool.query("SELECT id, format FROM Format ORDER BY format", function(err, rows, result){
+						context.formats = rows;
+						res.render('bookUser', context);
+					})
+				}
+			})
+		}
+	});	
+});
+
+app.post('/bookUser', function(req, res, next){
+	var rating;
+	if(req.body.rating){
+		rating = req.body.rating;
+	} else {
+		rating = null;
+	}
+	var user_id = req.body.user_id;
+	var book_id = req.body.book_id;
+	var format_id = req.body.format_id;
+	var date_read;
+	if(req.body.date_read){
+		date_read = req.body.date_read;
+	} else {
+		date_read = null;
+	}
+
+	console.log(rating);
+	console.log(user_id);
+	console.log(book_id);
+	console.log(format_id);
+	console.log(date_read);
+
+	mysql.pool.query("INSERT INTO BookUser (book_id, user_id, rating, date_added, date_read, format_id) \
+		VALUES (?, ?, ?, (SELECT CURDATE()), ?, ?)", 
+		[book_id, user_id, rating, date_read, format_id],
+		function(err, result){
+			if(err){
+				res.send({response: "Database error"});
+				next(err);
+				return;
+			} else {
+				res.redirect('/listBooks?user=' + user_id);
+			}
+		})
+});
 
 /*************************************************
 * Edit requests
@@ -459,6 +525,7 @@ app.get('/editUser', function(req, res, next){
 	var user_id = req.query.id;
 	var context = {};
 	if(user_id){
+		context.editing = true;
 		context.route = '/editUser';
 	} else {
 		context.route = '/addUser';
@@ -471,6 +538,8 @@ app.get('/editUser', function(req, res, next){
 			next(err);
 			return;
 		} else {
+			context.user_info = row[0];
+			console.log(context);
 			res.render('editUser', context);
 		}
 	});

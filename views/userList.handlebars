@@ -15,6 +15,8 @@
 	<tr>
 		<td>{{this.user_name}}</td>
 		<td>{{this.user_email}}</td>
+		<td><a href="/editUser?id={{this.id}}">edit</a></td>
+		<td><a href="/listBooks?user={{this.id}}">list books</a></td>
 	<tr>
 	{{/each}}
 </table>
