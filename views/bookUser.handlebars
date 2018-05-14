@@ -1,0 +1,44 @@
+<h1>Book User Management Page</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/listUsers">Users</a>
+<a href="/editBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<a href="/editUser">Add User</a>
+<a href="/bookUser">Manage User Books</a>
+
+{{#each users}}
+<p>{{this.user_name}}</p>
+{{/each}}
+
+
+<form id="book_user_form" action="/bookUser" method="post">
+	<fieldset>
+		User: 	<select name="user_id">
+					{{#each users}}
+					<option value="{{this.id}}">{{this.user_name}} ({{this.user_email}})</option>
+					{{/each}}
+				</select>
+		Book: 	<select name="book_id">
+					{{#each books}}
+					<option value="{{this.id}}">{{this.title}} ({{this.lastName}})</option>
+					{{/each}}
+				</select>
+		Format: <select name="format_id">
+					{{#each formats}}
+					<option value="{{this.id}}">{{this.format}}</option>
+					{{/each}}
+				</select>
+		Rating: <select name="rating">
+					<option value=""></option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+				</select>
+		Date Read: <input type="date" name="date_read">
+
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>
