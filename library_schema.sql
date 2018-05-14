@@ -62,7 +62,8 @@ CREATE TABLE `Author`
  PRIMARY KEY (`id`) ,
 
  FOREIGN KEY (`country_id`)
- 	REFERENCES `Country` (`id`) ,
+ 	REFERENCES `Country` (`id`) 
+ 	ON DELETE CASCADE ,
 
  CONSTRAINT `AuthorDOB` UNIQUE(`firstName`, `lastName`, `dob`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -87,6 +88,7 @@ CREATE TABLE `SubCategory`
 
  FOREIGN KEY (`category_id`)
  	REFERENCES `Category` (`id`)
+ 	ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- `Book`
@@ -103,13 +105,16 @@ CREATE TABLE `Book`
  PRIMARY KEY (`id`) ,
 
  FOREIGN KEY (`language_id`)
- 	REFERENCES `Language` (`id`) ,
+ 	REFERENCES `Language` (`id`) 
+ 	ON DELETE CASCADE ,
 
  FOREIGN KEY (`author_id`)
- 	REFERENCES `Author` (`id`) ,
+ 	REFERENCES `Author` (`id`) 
+ 	ON DELETE CASCADE ,
 
  FOREIGN KEY (`category_id`)
- 	REFERENCES `SubCategory` (`id`) ,
+ 	REFERENCES `SubCategory` (`id`) 
+ 	ON DELETE CASCADE ,
 
  CONSTRAINT `TitleAuthorYear` UNIQUE(`title`, `year`, `author_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -127,13 +132,16 @@ CREATE TABLE `BookUser`
  PRIMARY KEY (`book_id`, `user_id`, `format_id`) ,
 
  FOREIGN KEY (`book_id`)
- 	REFERENCES `Book` (`id`) ,
+ 	REFERENCES `Book` (`id`) 
+ 	ON DELETE CASCADE ,
 
  FOREIGN KEY (`user_id`)
- 	REFERENCES `User` (`id`) ,
+ 	REFERENCES `User` (`id`) 
+ 	ON DELETE CASCADE ,
 
  FOREIGN KEY (`format_id`)
  	REFERENCES `Format` (`id`)
+ 	ON DELETE CASCADE 
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- `BookAuthor`
@@ -145,8 +153,10 @@ CREATE TABLE `BookAuthor`
  PRIMARY KEY (`book_id`, `author_id`) ,
 
  FOREIGN KEY (`book_id`)
- 	REFERENCES `Book` (`id`) ,
+ 	REFERENCES `Book` (`id`) 
+ 	ON DELETE CASCADE ,
 
  FOREIGN KEY (`author_id`)
  	REFERENCES `Author` (`id`)
+ 	ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
