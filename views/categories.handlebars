@@ -1,0 +1,44 @@
+<h1>Categories</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/listUsers">Users</a>
+<a href="/editBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<a href="/editUser">Add User</a>
+<a href="/bookUser">Manage User Books</a>
+
+<form id="category_form" action="/addCategory" method="post">
+	<fieldset>
+		<legend>Enter a category</legend>
+		Category: <input type="text" name="category_name"><br>
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>
+
+<form id="subcategory_form" action="/addSubCategory" method="post">
+	<fieldset>
+		<legend>Enter a sub category</legend>
+		Subcategory: <input type="text" name="subcategory_name"><br>
+		Category: <select name="category_id">
+			{{#each categories}}
+			<option value="{{this.id}}">{{this.name}}</option>
+			{{/each}}
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>
+
+<table>
+	<tr>
+		<th>SubCategory</th>
+		<th>Category</th>
+	</tr>
+
+	{{#each subcategories}}
+	<tr>
+		<td>{{this.subcategory}}</td>
+		<td>{{this.category}}</td>
+		<td><a href="/deleteSubCategory?subcategory_id={{this.subcategory_id}}">Delete SubCategory</a></td>
+		<td><a href="/deleteCategory?category_id={{this.category_id}}">Delete Category</a>
+	<tr>
+	{{/each}}
+</table>

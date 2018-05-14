@@ -153,7 +153,70 @@ app.get('/listUsers', function(req, res, render){
 	});
 });
 
+app.get('/countries', function(req, res, render){
+	var context = {};
+	mysql.pool.query("SELECT id, country, region FROM Country ORDER BY country", function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else{
+			context.countries = rows;
+			res.render('countries', context);
+		}
+	});
+});
 
+app.get('/languages', function(req, res, render){
+	var context = {};
+	mysql.pool.query("SELECT id, language, language_family FROM Language ORDER BY language", function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else{
+			context.languages = rows;
+			res.render('languages', context);
+		}
+	});
+});
+
+app.get('/formats', function(req, res, render){
+	var context = {};
+	mysql.pool.query("SELECT id, format FROM Format ORDER BY format", function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else{
+			context.formats = rows;
+			res.render('formats', context);
+		}
+	});
+});
+
+app.get('/categories', function(req, res, render){
+	var context = {};
+	mysql.pool.query("SELECT SubCategory.id AS subcategory_id, SubCategory.name AS subcategory, Category.name AS category, Category.id AS category_id FROM SubCategory RIGHT JOIN Category ON SubCategory.category_id = Category.id", function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else{
+			context.subcategories = rows;
+			mysql.pool.query("SELECT id, name FROM Category", function(err, rows, fields){
+				if(err){
+					res.send({response: "Database error"});
+					next(err);
+					return;
+				} else {
+					context.categories = rows;
+					res.render('categories', context);
+				}
+			});
+		}
+	});
+});
 
 app.get('/stats', function(req, res, render){
 	var context = {};
@@ -310,6 +373,74 @@ app.post('/addUser', function(req, res, next){
 		} else {
 			console.log("Successful user entry");
 			res.redirect("/listUsers");
+		}
+	});
+});
+
+app.post('/addLanguage', function(req, res, next){
+	var language = req.body.language_name;
+	var language_family = req.body.language_family;
+	mysql.pool.query("INSERT INTO Language (language, language_family) VALUES (?, ?)", [language, language_family], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('languages');
+		}
+	});
+});
+
+app.post('/addCountry', function(req, res, next){
+	var country = req.body.country_name;
+	var region = req.body.region_name;
+	mysql.pool.query("INSERT INTO Country (country, region) VALUES (?, ?)", [country, region], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('countries');
+		}
+	});
+});
+
+app.post('/addCategory', function(req, res, next){
+	var category = req.body.category_name;
+	mysql.pool.query("INSERT INTO Category (name) VALUES (?)", [category], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('categories');
+		}
+	});
+});
+
+app.post('/addSubCategory', function(req, res, next){
+	var subcategory = req.body.subcategory_name;
+	var category_id = req.body.category_id;
+	mysql.pool.query("INSERT INTO SubCategory (name, category_id) VALUES (?, ?)", [subcategory, category_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('categories');
+		}
+	});
+});
+
+app.post('/addFormat', function(req, res, next){
+	var format = req.body.format_name;
+	mysql.pool.query("INSERT INTO Format (format) VALUES (?)", [format], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('formats');
 		}
 	});
 });
@@ -636,6 +767,7 @@ app.post('/addSecondaryAuthor', function(req, res, next){
 * - delete book
 * - delete author
 *************************************************/
+// removes book from a user's shelf
 app.get('/removeBook', function(req, res, next){
 	var book_id = req.query.book_id;
 	var user_id = req.query.user_id;
@@ -656,6 +788,7 @@ app.get('/removeBook', function(req, res, next){
 	}
 });
 
+// deletes the book altogether
 app.get('/deleteBook', function(req, res, next){
 	console.log("request received to delete entry " + req.query.id);
 
@@ -700,6 +833,65 @@ app.get('/removeAuthor', function(req, res, next){
 	// });
 });
 
+app.get('/deleteSubCategory', function(req, res, next){
+	mysql.pool.query("DELETE FROM SubCategory WHERE id = ?", [req.query.subcategory_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect("/categories");
+		}
+	});
+});
+
+app.get('/deleteCategory', function(req, res, next){
+	mysql.pool.query("DELETE FROM Category WHERE id = ?", [req.query.category_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect("/categories");
+		}
+	})
+});
+
+app.get('/deleteCountry', function(req, res, next){
+	mysql.pool.query("DELETE FROM Country WHERE id = ?", [req.query.country_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect("/countries");
+		}
+	})
+});
+
+app.get('/deleteLanguage', function(req, res, next){
+	mysql.pool.query("DELETE FROM Language WHERE id = ?", [req.query.language_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect("/languages");
+		}
+	})
+});
+
+app.get('/deleteFormat', function(req, res, next){
+	mysql.pool.query("DELETE FROM Format WHERE id = ?", [req.query.format_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect("/formats");
+		}
+	})
+});
 
 /*************************************************
 * 404 and 500 handleers

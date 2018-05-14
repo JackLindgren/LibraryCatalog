@@ -1,0 +1,32 @@
+<h1>Languages</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/listUsers">Users</a>
+<a href="/editBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<a href="/editUser">Add User</a>
+<a href="/bookUser">Manage User Books</a>
+
+<form id="language_form" action="/addLanguage" method="post">
+	<fieldset>
+		<legend>Enter a language</legend>
+		Language: <input type="text" name="language_name"><br>
+		Family: <input type="text" name="language_family"><br>
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>
+
+<table>
+	<tr>
+		<th>Language</th>
+		<th>Family</th>
+	</tr>
+
+	{{#each languages}}
+	<tr>
+		<td>{{this.language}}</td>
+		<td>{{this.language_family}}</td>
+		<td><a href="/deleteLanguage?language_id={{this.id}}">Delete</a></td>
+	<tr>
+	{{/each}}
+</table>

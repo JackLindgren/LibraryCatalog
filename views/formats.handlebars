@@ -1,0 +1,29 @@
+<h1>Formats</h1>
+<a href="/listBooks">Books</a>
+<a href="/listAuthors">Authors</a>
+<a href="/listUsers">Users</a>
+<a href="/editBook">Add Book</a>
+<a href="/editAuthor">Add Author</a>
+<a href="/editUser">Add User</a>
+<a href="/bookUser">Manage User Books</a>
+
+<form id="format_form" action="/addFormat" method="post">
+	<fieldset>
+		<legend>Enter a format</legend>
+		Format: <input type="text" name="format_name"><br>
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>
+
+<table>
+	<tr>
+		<th>Format</th>
+	</tr>
+
+	{{#each formats}}
+	<tr>
+		<td>{{this.format}}</td>
+		<td><a href="/deleteFormat?format_id={{this.id}}">Delete</a></td>
+	<tr>
+	{{/each}}
+</table>
