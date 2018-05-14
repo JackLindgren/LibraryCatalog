@@ -36,6 +36,7 @@ app.get('/', function(req, res, next){
 *************************************************/
 // list the current books in the database
 app.get('/listBooks', function(req, res, next){
+	var context = {};
 	console.log("Request received for table data");
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
 		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
@@ -78,11 +79,45 @@ app.get('/listBooks', function(req, res, next){
 			next(err);
 			return;
 		}
-		var context = {};
 		context.books = rows;
+		console.log(context);
 		res.render('bookList', context); 
 	});
 });
+
+app.get('/listUserBooks', function(req, res, next){
+	var context = {};
+	
+	console.log("Request received for table data");
+	
+	var user_id = req.query.user;
+
+	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
+		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
+		sc.name AS category_name, \
+		bu.user_id, u.user_name, bu.date_added, bu.date_read, \
+		f.format \
+		FROM Book AS b \
+		LEFT JOIN Author AS a ON b.author_id = a.id \
+		LEFT JOIN Country AS c ON a.country_id = c.id \
+		LEFT JOIN Language AS l ON b.language_id = l.id \
+		LEFT JOIN SubCategory AS sc ON b.category_id = sc.id \
+		LEFT JOIN BookUser AS bu ON b.id = bu.book_id \
+		LEFT JOIN User AS u ON bu.user_id = u.id \
+		LEFT JOIN Format AS f ON bu.format_id = f.id \
+		WHERE bu.user_id = ? ";
+
+	mysql.pool.query(book_query, [user_id], function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			context.books = rows;
+			res.render('userBooks', context);
+		}
+	});
+})
 
 // Render a list of authors
 app.get('/listAuthors', function(req, res, render){
@@ -117,6 +152,8 @@ app.get('/listUsers', function(req, res, render){
 		res.render('userList', context);
 	});
 });
+
+
 
 app.get('/stats', function(req, res, render){
 	var context = {};
@@ -157,7 +194,6 @@ app.get('/stats', function(req, res, render){
 		});
 
 	});
-
 });
 
 /*************************************************
@@ -337,7 +373,7 @@ app.post('/bookUser', function(req, res, next){
 				next(err);
 				return;
 			} else {
-				res.redirect('/listBooks?user=' + user_id);
+				res.redirect('/listUserBooks?user=' + user_id);
 			}
 		})
 });
@@ -601,6 +637,26 @@ app.post('/addSecondaryAuthor', function(req, res, next){
 * - delete author
 *************************************************/
 app.get('/removeBook', function(req, res, next){
+	var book_id = req.query.book_id;
+	var user_id = req.query.user_id;
+	if(book_id && user_id){
+		mysql.pool.query("DELETE FROM BookUser WHERE book_id = ? AND user_id = ?", [book_id, user_id], function(err, result){
+			if(err){
+				res.send({response: "Database error"});
+				next(err);
+				return;
+			} else {
+				console.log("Successfully dissociated book " + book_id + " from user " + user_id);
+				res.redirect('listUserBooks?user='+user_id);
+			}
+		})
+	} else {
+		console.log("missing book ID or user ID");
+		res.redirect('/listBooks');
+	}
+});
+
+app.get('/deleteBook', function(req, res, next){
 	console.log("request received to delete entry " + req.query.id);
 
 	mysql.pool.query("DELETE FROM Book WHERE id=?", [req.query.id], function(err, result){
