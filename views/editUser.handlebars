@@ -12,11 +12,8 @@
 <a href="/formats">Formats</a>
 
 <form id="user_form" action="{{route}}" method="post">
-
 	<fieldset id="form_field">
-
 		<legend id="form_legend">Enter User Information</legend>
-		
 		User Name:		<input type="text" name="user_name" id="user_name" value="{{user_info.user_name}}"><br>
 		User Email:		{{#if editing}}
 						<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}" readonly><br>
@@ -25,9 +22,7 @@
 						{{/if}}
 		
 		<input type="submit" id="new_user" value="Submit">
-	
 	</fieldset>
-
 </form>
 
 <!-- <script src="selectionSetUser.js"></script> -->

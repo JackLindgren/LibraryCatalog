@@ -49,26 +49,23 @@ app.get('/listBooks', function(req, res, next){
 		WHERE b.id ";
 
 	// take arguments in the query string that limit the search by author, country, or language (using the ID)
-	if(req.query.author){
-		console.log("There is an author: ", req.query.author);
-		book_query += " AND b.author_id = " + req.query.author;
+	if(req.query.author_id){
+		book_query += " AND b.author_id = " + req.query.author_id;
 	}
-	if(req.query.language){
-		console.log("There is a language: ", req.query.language);
-		book_query += " AND b.language_id = " + req.query.language;
+	if(req.query.language_id){
+		book_query += " AND b.language_id = " + req.query.language_id;
 	}
-	if(req.query.country){
-		console.log("There is a country: ", req.query.country);
-		book_query += " AND a.country_id = " + req.query.country;
+	if(req.query.country_id){
+		book_query += " AND a.country_id = " + req.query.country_id;
 	}
 	if(req.query.gender){
 		book_query += " AND a.gender = " + "'" + req.query.gender + "'";
 	}
-	if(req.query.category){
-		book_query += " AND b.category_id = " + req.query.category;
+	if(req.query.category_id){
+		book_query += " AND b.category_id = " + req.query.category_id;
 	}
-	if(req.query.user){
-		book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = " + req.query.user + ")";
+	if(req.query.user_id){
+		book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = " + req.query.user_id + ")";
 	}
 
 	book_query += " ORDER BY a.lastName, b.year";
@@ -90,7 +87,7 @@ app.get('/listUserBooks', function(req, res, next){
 	
 	console.log("Request received for table data");
 	
-	var user_id = req.query.user;
+	var user_id = req.query.user_id;
 
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
 		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
@@ -266,7 +263,7 @@ app.get('/stats', function(req, res, render){
 
 app.get('/bookDetails', function(req, res, next){
 	var context = {};
-	var book_id = req.query.id;
+	var book_id = req.query.book_id;
 	mysql.pool.query("SELECT Book.title, Book.year, Category.name AS categoryName, SubCategory.name AS subCategoryName, Language.language, Author.firstName, Author.lastName, Country.country \
 		FROM Book \
 		LEFT JOIN SubCategory ON Book.category_id = SubCategory.id \
@@ -507,7 +504,7 @@ app.post('/bookUser', function(req, res, next){
 				next(err);
 				return;
 			} else {
-				res.redirect('/listUserBooks?user=' + user_id);
+				res.redirect('/listUserBooks?user_id=' + user_id);
 			}
 		})
 });
@@ -518,7 +515,7 @@ app.post('/bookUser', function(req, res, next){
 * - edit author
 *************************************************/
 app.get('/editBook', function(req, res, next){
-	var book_id = req.query.id;
+	var book_id = req.query.book_id;
 	
 	var context = {};
 
@@ -633,7 +630,7 @@ app.post('/editBook', function(req, res, next){
 
 app.get('/editAuthor', function(req, res, next){
 	
-	var author_id = req.query.id;
+	var author_id = req.query.author_id;
 
 	var context = {};
 	if(author_id){
@@ -692,7 +689,7 @@ app.post('/editAuthor', function(req, res, next){
 });
 
 app.get('/editUser', function(req, res, next){
-	var user_id = req.query.id;
+	var user_id = req.query.user_id;
 	var context = {};
 	if(user_id){
 		context.editing = true;
@@ -760,7 +757,7 @@ app.post('/addSecondaryAuthor', function(req, res, next){
 			next(err);
 			return;
 		} else {
-			res.redirect('/editBook?id=' + book_id);
+			res.redirect('/editBook?book_id=' + book_id);
 		}
 	});
 });
@@ -772,8 +769,11 @@ app.post('/addSecondaryAuthor', function(req, res, next){
 *************************************************/
 // removes book from a user's shelf
 app.get('/removeBook', function(req, res, next){
+	
 	var book_id = req.query.book_id;
 	var user_id = req.query.user_id;
+
+	// if the book and user both exist, delete the BookUser association
 	if(book_id && user_id){
 		mysql.pool.query("DELETE FROM BookUser WHERE book_id = ? AND user_id = ?", [book_id, user_id], function(err, result){
 			if(err){
@@ -782,7 +782,7 @@ app.get('/removeBook', function(req, res, next){
 				return;
 			} else {
 				console.log("Successfully dissociated book " + book_id + " from user " + user_id);
-				res.redirect('listUserBooks?user='+user_id);
+				res.redirect('listUserBooks?user_id='+user_id);
 			}
 		})
 	} else {
@@ -793,9 +793,10 @@ app.get('/removeBook', function(req, res, next){
 
 // deletes the book altogether
 app.get('/deleteBook', function(req, res, next){
-	console.log("request received to delete entry " + req.query.id);
 
-	mysql.pool.query("DELETE FROM Book WHERE id=?", [req.query.id], function(err, result){
+	console.log("request received to delete entry " + req.query.book_id);
+
+	mysql.pool.query("DELETE FROM Book WHERE id=?", [req.query.book_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -807,7 +808,7 @@ app.get('/deleteBook', function(req, res, next){
 });
 
 app.get('/deleteUser', function(req, res, next){
-	mysql.pool.query("DELETE FROM User WHERE id = ?", [req.query.id], function(err, result){
+	mysql.pool.query("DELETE FROM User WHERE id = ?", [req.query.user_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -819,33 +820,17 @@ app.get('/deleteUser', function(req, res, next){
 })
 
 app.get('/deleteAuthor', function(req, res, next){
-	mysql.pool.query("DELETE FROM Book WHERE author_id = ?", [req.query.id], function(err, result){
+
+	mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.author_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
 			return;
 		} else {
-			mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.id], function(err, result){
-				if(err){
-					res.send({response: "Database error"});
-					next(err);
-					return;
-				} else {
-					res.redirect("/listAuthors");
-				}
-			});
+			res.redirect("/listAuthors");
 		}
 	});
 
-	// mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.id], function(err, result){
-	// 	if(err){
-	// 		res.send({response: "Database error"});
-	// 		next(err);
-	// 		return;
-	// 	} else {
-	// 		res.redirect("/listAuthors");
-	// 	}
-	// });
 });
 
 app.get('/deleteSubCategory', function(req, res, next){

@@ -22,13 +22,13 @@
 
 	{{#each authors}}
 	<tr>
-		<td><a href="/listBooks?author={{this.id}}">{{this.lastName}}</a></td>
+		<td><a href="/listBooks?author_id={{this.id}}">{{this.lastName}}</a></td>
 		<td>{{this.firstName}}</td>
 		<td>{{this.dob}}</td>
 		<td>{{this.country}}</td>
 		<td>{{this.gender}}</td>
-		<td><a href="/editAuthor?id={{this.id}}">Edit</a></td>
-		<td><a href="/deleteAuthor?id={{this.id}}">Delete</a></td>
+		<td><a href="/editAuthor?author_id={{this.id}}">Edit</a></td>
+		<td><a href="/deleteAuthor?author_id={{this.id}}">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>
