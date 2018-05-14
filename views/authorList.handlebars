@@ -6,6 +6,10 @@
 <a href="/editAuthor">Add Author</a>
 <a href="/editUser">Add User</a>
 <a href="/bookUser">Manage User Books</a>
+<a href="/languages">Languages</a>
+<a href="/countries">Countries</a>
+<a href="/categories">Categories</a>
+<a href="/formats">Formats</a>
 
 <table>
 	<tr>
@@ -24,7 +28,7 @@
 		<td>{{this.country}}</td>
 		<td>{{this.gender}}</td>
 		<td><a href="/editAuthor?id={{this.id}}">Edit</a></td>
-		<td><a href="/removeAuthor?id={{this.id}}">Delete</a></td>
+		<td><a href="/deleteAuthor?id={{this.id}}">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>
