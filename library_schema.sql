@@ -114,7 +114,7 @@ CREATE TABLE `Book`
 
  FOREIGN KEY (`category_id`)
  	REFERENCES `SubCategory` (`id`) 
- 	ON DELETE CASCADE ,
+ 	ON DELETE SET NULL ,
 
  CONSTRAINT `TitleAuthorYear` UNIQUE(`title`, `year`, `author_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
