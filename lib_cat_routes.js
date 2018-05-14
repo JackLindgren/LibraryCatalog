@@ -712,6 +712,21 @@ app.get('/editUser', function(req, res, next){
 	});
 });
 
+app.post('/editUser', function(req, res, next){
+	var user_id = req.body.user_id;
+	var user_name = req.body.user_name;
+	mysql.pool.query("UPDATE User SET user_name = ? WHERE id = ?", [user_name, user_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			console.log("Successful user edit");
+			res.redirect("/listUsers");
+		}
+	})
+})
+
 app.get('/addSecondaryAuthor', function(req, res, next){
 	var book_id = req.query.id;
 	
