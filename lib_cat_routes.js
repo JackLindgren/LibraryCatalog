@@ -152,6 +152,7 @@ app.get('/listUsers', function(req, res, render){
 
 app.get('/countries', function(req, res, render){
 	var context = {};
+	var country_id = req.query.country_id;
 	mysql.pool.query("SELECT id, country, region FROM Country ORDER BY country", function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
@@ -159,13 +160,27 @@ app.get('/countries', function(req, res, render){
 			return;
 		} else{
 			context.countries = rows;
-			res.render('countries', context);
+			if(country_id){
+				mysql.pool.query("SELECT id, country, region FROM Country WHERE id = ? LIMIT 1", [country_id], function(err, rows, fields){
+					if(err){
+						res.send({response: "Database error"});
+						next(err);
+						return;
+					} else {
+						context.country_info = rows[0];
+						res.render('countries', context);
+					}
+				})
+			} else {
+				res.render('countries', context);
+			}
 		}
 	});
 });
 
 app.get('/languages', function(req, res, render){
 	var context = {};
+	var language_id = req.query.language_id;
 	mysql.pool.query("SELECT id, language, language_family FROM Language ORDER BY language", function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
@@ -173,7 +188,20 @@ app.get('/languages', function(req, res, render){
 			return;
 		} else{
 			context.languages = rows;
-			res.render('languages', context);
+			if(language_id){
+				mysql.pool.query("SELECT id, language, language_family FROM Language WHERE id = ?", [language_id], function(err, rows, fields){
+					if(err){
+						res.send({response: "Database error"});
+						next(err);
+						return;
+					} else {
+						context.language_info = rows[0];
+						res.render('languages', context);
+					}
+				})
+			} else {
+				res.render('languages', context);
+			}
 		}
 	});
 });
@@ -760,6 +788,39 @@ app.get('/addSecondaryAuthor', function(req, res, next){
 	)
 });
 
+app.post('/editLanguage', function(req, res, next){
+	var language_id = req.body.language_id;
+	var language = req.body.language_name;
+	var family = req.body.language_family;
+	console.log(language_id, language, family);
+
+	mysql.pool.query("UPDATE Language SET language = ?, language_family = ? WHERE id = ?", [language, family, language_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('/languages');
+		}
+	});
+});
+
+app.post('/editCountry', function(req, res, next){
+	var country_id = req.body.country_id;
+	var country = req.body.country_name;
+	var region = req.body.region_name;
+	console.log(country_id, country, region);
+
+	mysql.pool.query("UPDATE Country SET country = ?, region = ? WHERE id = ?", [country, region, country_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('/countries');
+		}
+	});
+});
 
 app.post('/addSecondaryAuthor', function(req, res, next){
 	var book_id = req.body.book_id;

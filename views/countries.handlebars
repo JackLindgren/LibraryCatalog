@@ -1,10 +1,17 @@
 <h1>Countries</h1>
 
+{{#if country_info}}
+<form id="country_form" action="/editCountry" method="post">
+{{else}}
 <form id="country_form" action="/addCountry" method="post">
+{{/if}}
 	<fieldset>
 		<legend>Enter a country</legend>
-		Country: <input type="text" name="country_name"><br>
-		Region: <input type="text" name="region_name"><br>
+		Country: <input type="text" name="country_name" value="{{country_info.country}}"><br>
+		Region: <input type="text" name="region_name" value="{{country_info.region}}"><br>
+		{{#if country_info}}
+		<input type="hidden" name="country_id" value="{{country_info.id}}">
+		{{/if}}
 		<input type="submit" value="Submit">
 	</fieldset>
 </form>
@@ -19,6 +26,7 @@
 	<tr>
 		<td>{{this.country}}</td>
 		<td>{{this.region}}</td>
+		<td><a href="/countries?country_id={{this.id}}">Edit</a></td>
 		<td><a href="/deleteCountry?country_id={{this.id}}">Delete</a></td>
 	<tr>
 	{{/each}}

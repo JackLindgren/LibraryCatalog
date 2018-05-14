@@ -1,10 +1,17 @@
 <h1>Languages</h1>
 
+{{#if language_info}}
+<form id="language_form" action="/editLanguage" method="post">
+{{else}}
 <form id="language_form" action="/addLanguage" method="post">
+{{/if}}
 	<fieldset>
 		<legend>Enter a language</legend>
-		Language: <input type="text" name="language_name"><br>
-		Family: <input type="text" name="language_family"><br>
+		Language: <input type="text" name="language_name" value="{{language_info.language}}"><br>
+		Family: <input type="text" name="language_family" value="{{language_info.language_family}}"><br>
+		{{#if language_info}}
+		<input type="hidden" name="language_id" value="{{language_info.id}}">
+		{{/if}}
 		<input type="submit" value="Submit">
 	</fieldset>
 </form>
@@ -19,6 +26,7 @@
 	<tr>
 		<td>{{this.language}}</td>
 		<td>{{this.language_family}}</td>
+		<td><a href="/languages?language_id={{this.id}}">Edit</a></td>
 		<td><a href="/deleteLanguage?language_id={{this.id}}">Delete</a></td>
 	<tr>
 	{{/each}}
