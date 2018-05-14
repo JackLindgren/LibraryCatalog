@@ -269,10 +269,10 @@ app.get('/bookDetails', function(req, res, next){
 	var book_id = req.query.id;
 	mysql.pool.query("SELECT Book.title, Book.year, Category.name AS categoryName, SubCategory.name AS subCategoryName, Language.language, Author.firstName, Author.lastName, Country.country \
 		FROM Book \
-		INNER JOIN SubCategory ON Book.category_id = SubCategory.id \
-		INNER JOIN Category ON SubCategory.category_id = Category.id \
+		LEFT JOIN SubCategory ON Book.category_id = SubCategory.id \
+		LEFT JOIN Category ON SubCategory.category_id = Category.id \
 		INNER JOIN Author ON Book.author_id = Author.id \
-		INNER JOIN Country ON Author.country_id = Country.id \
+		LEFT JOIN Country ON Author.country_id = Country.id \
 		INNER JOIN Language ON Book.language_id = Language.id \
 		WHERE Book.id = ?", [book_id], function(err, rows, fields){
 		if(err){
@@ -291,6 +291,8 @@ app.get('/bookDetails', function(req, res, next){
 					return;
 				} else {
 					context.addl_authors = rows;
+
+					console.log(context);
 					res.render('bookDetails', context);
 				}
 			})
@@ -309,15 +311,13 @@ app.post('/addBook', function(req, res, next){
 	console.log(req.body);
 
 	var title = req.body.book_title;
-	// var first_name = req.body.author_first_name;
-	// var last_name = req.body.author_last_name;
-	var author_id = req.body.author_id;
+	var author_id = req.body.author;
 	var language = req.body.book_language;
 	var year = req.body.book_year;
 	var language_id = req.body.book_language;
 	var category_id = req.body.book_category;
 
-	console.log(title, first_name, last_name, language, year);
+	console.log(author_id);
 
 	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id, category_id) \
 		VALUES (?, ?, ?, ?, ?)", 
@@ -340,6 +340,9 @@ app.post('/addAuthor', function(req, res, next){
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
 	var birthdate = req.body.author_dob;
+	if(!birthdate){
+		birthdate = null;
+	}
 	var country = req.body.author_country;
 	var gender = req.body.gender;
 
@@ -803,7 +806,19 @@ app.get('/deleteBook', function(req, res, next){
 	});
 });
 
-app.get('/removeAuthor', function(req, res, next){
+app.get('/deleteUser', function(req, res, next){
+	mysql.pool.query("DELETE FROM User WHERE id = ?", [req.query.id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('/listUsers');
+		}
+	})
+})
+
+app.get('/deleteAuthor', function(req, res, next){
 	mysql.pool.query("DELETE FROM Book WHERE author_id = ?", [req.query.id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
