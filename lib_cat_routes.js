@@ -249,8 +249,8 @@ app.get('/stats', function(req, res, render){
 	mysql.pool.query("SELECT Language.language, COUNT(Book.id) AS blcount FROM Book LEFT JOIN Language ON Book.language_id = Language.id GROUP BY Language.id ORDER BY blcount DESC, Language.language ASC", function(err, rows){
 		if(err){
 			console.log(err);
-			res.send({response: "Database error"});
-			next(err);
+			// res.send({response: "Database error"});
+			// next(err);
 			return;
 		}
 		context.languages = rows;
@@ -260,7 +260,7 @@ app.get('/stats', function(req, res, render){
 				console.log(err);
 				// res.send({response: "Database error"});
 				// next(err);
-				// return;
+				return;
 			}
 			context.countries = rows;
 			mysql.pool.query("SELECT a.firstName, a.lastName, COUNT(Book.id) AS bookCount FROM Book LEFT JOIN Author AS a ON Book.author_id = a.id GROUP BY a.id ORDER BY bookCount DESC, a.lastName ASC LIMIT 20", function(err, rows){
@@ -268,12 +268,13 @@ app.get('/stats', function(req, res, render){
 					console.log(err);
 					// res.send({response: "Database error"});
 					// next(err);
-					// return;
+					return;
 				}
 				context.authors = rows;
 				mysql.pool.query("SELECT year DIV 10 * 10 AS decade, COUNT(id) AS count FROM Book GROUP BY decade ORDER BY count DESC, decade DESC", function(err, rows){
 					if(err){
 						console.log(err);
+						return;
 					}
 					context.decades = rows;
 					res.render('statsView', context);
@@ -754,39 +755,6 @@ app.post('/editUser', function(req, res, next){
 		}
 	})
 })
-
-app.get('/addSecondaryAuthor', function(req, res, next){
-	var book_id = req.query.id;
-	
-	var context = {};
-
-	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
-		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id \
-		FROM Book AS b \
-		LEFT JOIN Author AS a ON b.author_id = a.id \
-		LEFT JOIN Country AS c ON a.country_id = c.id \
-		LEFT JOIN Language AS l ON b.language_id = l.id \
-		WHERE b.id = ? LIMIT 1", 
-		[book_id],
-		function(err, rows, result){
-			if(err){
-				console.log("error");
-			} else {
-				context.book_info = rows[0];
-				mysql.pool.query("SELECT id, firstName, lastName FROM Author", function(err, rows, result){
-					if(err){
-						res.send({response: "Database error"});
-						next(err);
-						return;
-					} else {
-						context.author_names = rows;
-						res.render('addSecondaryAuthor', context);
-					}
-				});
-			}
-		}
-	)
-});
 
 app.post('/editLanguage', function(req, res, next){
 	var language_id = req.body.language_id;
