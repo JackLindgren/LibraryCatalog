@@ -707,6 +707,9 @@ app.get('/editAuthor', function(req, res, next){
 
 			context.author_info = rows[0];
 
+			// format the DOB to a string so that it can populate the form DOB value
+			context.author_info.dob = context.author_info.dob.toISOString().split("T")[0];
+
 			// get the current valid countries
 			mysql.pool.query("SELECT country, id AS country_id FROM Country", function(err, rows, result){
 				if(err){
