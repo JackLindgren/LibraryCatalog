@@ -1,5 +1,15 @@
 <h1>Books</h1>
 
+<form id="search_form" action="/listBooks" method="get">
+	<fieldset>
+		<legend>Enter a search parameters</legend>
+		Author: <input type="text" name="author"><br>
+		Title: <input type="text" name="title"><br>
+		Subject: <input type="text" name="subject"><br>
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>
+
 <table>
 	<tr>
 		<th>Title</th>

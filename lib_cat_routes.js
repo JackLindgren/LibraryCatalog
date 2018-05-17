@@ -48,29 +48,52 @@ app.get('/listBooks', function(req, res, next){
 		LEFT JOIN SubCategory AS sc ON b.category_id = sc.id \
 		WHERE b.id ";
 
+	var query_args = [];
+
 	// take arguments in the query string that limit the search by author, country, or language (using the ID)
 	if(req.query.author_id){
-		book_query += " AND b.author_id = " + req.query.author_id;
+		book_query += " AND b.author_id = ?";
+		query_args.push(req.query.author_id);
 	}
 	if(req.query.language_id){
-		book_query += " AND b.language_id = " + req.query.language_id;
+		book_query += " AND b.language_id = ?";
+		query_args.push(req.query.language_id);
 	}
 	if(req.query.country_id){
-		book_query += " AND a.country_id = " + req.query.country_id;
+		book_query += " AND a.country_id = ";
+		query_args.push(req.query.country_id);
 	}
 	if(req.query.gender){
-		book_query += " AND a.gender = " + "'" + req.query.gender + "'";
+		book_query += " AND a.gender = '?'";
+		query_args.push(req.query.gender);
 	}
 	if(req.query.category_id){
-		book_query += " AND b.category_id = " + req.query.category_id;
+		book_query += " AND b.category_id = ?";
+		query_args.push(req.query.category_id);
 	}
 	if(req.query.user_id){
-		book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = " + req.query.user_id + ")";
+		book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = ?)";
+		query_args.push(req.query.user_id);
+	}
+
+	if(req.query.author){
+		book_query += " AND (a.firstName LIKE ? OR a.lastName LIKE ? ) ";
+		query_args.push('%' + req.query.author + '%');
+		query_args.push('%' + req.query.author + '%');
+	}
+
+	if(req.query.title){
+		book_query += " AND b.title LIKE ? ";
+		query_args.push('%' + req.query.title + '%');
+	}
+	if(req.query.subject){
+		book_query += " AND sc.name LIKE ? ";
+		query_args.push('%' + req.query.subject + '%');
 	}
 
 	book_query += " ORDER BY a.lastName, b.year";
 
-	mysql.pool.query(book_query, function(err, rows, fields){
+	mysql.pool.query(book_query, query_args, function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -598,8 +621,8 @@ app.post('/editBook', function(req, res, next){
 		new_book = true;
 	}
 
-	var insert_query = "INSERT INTO Book (title,     year,     language_id,     author_id,     category_id,     is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
-	var update_query = "UPDATE Book SET   title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
+	var insert_query = "INSERT INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
+	var update_query = "UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
 	var book_query = null;
 
 	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];
