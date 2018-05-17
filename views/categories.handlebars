@@ -1,18 +1,39 @@
 <h1>Categories</h1>
 
+{{#if category_info}}
+<form id="category_form" action="/editCategory" method="post">
+{{else}}
 <form id="category_form" action="/addCategory" method="post">
+{{/if}}
 	<fieldset>
 		<legend>Enter a category</legend>
+		{{#if category_info}}
+		Category: <input type="text" name="category_name" value="{{category_info.name}}"><br>
+		<input type="hidden" name="category_id" value="{{category_info.id}}">
+		{{else}}
 		Category: <input type="text" name="category_name"><br>
+		{{/if}}
 		<input type="submit" value="Submit">
 	</fieldset>
 </form>
 
+{{#if subcategory_info}}
+<form id="subcategory_form" action="/editSubCategory" method="post">
+{{else}}
 <form id="subcategory_form" action="/addSubCategory" method="post">
+{{/if}}
 	<fieldset>
 		<legend>Enter a sub category</legend>
+		{{#if subcategory_info}}
+		Subcategory: <input type="text" name="subcategory_name" value="{{subcategory_info.subcategory}}"><br>
+		<input type="hidden" name="subcategory_id" value="{{subcategory_info.subcategory_id}}">
+		{{else}}
 		Subcategory: <input type="text" name="subcategory_name"><br>
+		{{/if}}
 		Category: <select name="category_id">
+			{{#if subcategory_info}}
+			<option value="{{subcategory_info.category_id}}" selected="selected">{{subcategory_info.category}}</option>
+			{{/if}}
 			{{#each categories}}
 			<option value="{{this.id}}">{{this.name}}</option>
 			{{/each}}
@@ -32,6 +53,8 @@
 		<td>{{this.category}}</td>
 		<td><a href="/deleteSubCategory?subcategory_id={{this.subcategory_id}}">Delete SubCategory</a></td>
 		<td><a href="/deleteCategory?category_id={{this.category_id}}">Delete Category</a>
+		<td><a href="/categories?subcategory_id={{this.subcategory_id}}">Edit Subcategory</a>
+		<td><a href="/categories?category_id={{this.category_id}}">Edit Category</a>
 	<tr>
 	{{/each}}
 </table>

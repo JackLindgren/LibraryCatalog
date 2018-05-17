@@ -230,6 +230,7 @@ app.get('/languages', function(req, res, render){
 
 app.get('/formats', function(req, res, render){
 	var context = {};
+	var format_id = req.query.format_id;
 	mysql.pool.query("SELECT id, format FROM Format ORDER BY format", function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
@@ -237,13 +238,27 @@ app.get('/formats', function(req, res, render){
 			return;
 		} else{
 			context.formats = rows;
-			res.render('formats', context);
+			if(format_id){
+				mysql.pool.query("SELECT id, format FROM Format WHERE id = ?", [format_id], function(err, rows, fields){
+					if(err){
+
+					} else {
+						context.format_info = rows[0];
+						res.render('formats', context);
+					}
+				})
+			} else {
+				res.render('formats', context);
+			}
 		}
 	});
 });
 
 app.get('/categories', function(req, res, render){
 	var context = {};
+	var category_id = req.query.category_id;
+	var subcategory_id = req.query.subcategory_id;
+	console.log(category_id);
 	mysql.pool.query("SELECT SubCategory.id AS subcategory_id, SubCategory.name AS subcategory, Category.name AS category, Category.id AS category_id FROM SubCategory RIGHT JOIN Category ON SubCategory.category_id = Category.id", function(err, rows, fields){
 		if(err){
 			res.send({response: "Database error"});
@@ -258,7 +273,34 @@ app.get('/categories', function(req, res, render){
 					return;
 				} else {
 					context.categories = rows;
-					res.render('categories', context);
+					if(category_id){
+						mysql.pool.query("SELECT id, name FROM Category WHERE id = ?", [category_id], function(err, rows, fields){
+							if(err){
+								res.send({response: "Database error"});
+								next(err);
+								return;
+							} else {
+								context.category_info = rows[0];
+								console.log(context.category_info);
+								res.render('categories', context);
+							}
+						})
+					} else if(subcategory_id){
+						mysql.pool.query("SELECT SubCategory.id AS subcategory_id, Category.id AS category_id, SubCategory.name AS subcategory, Category.name AS category \
+							FROM SubCategory INNER JOIN Category ON SubCategory.category_id = Category.id WHERE SubCategory.id = ?", 
+							[subcategory_id], function(err, rows, fields){
+							if(err){
+								res.send({response: "Database error"});
+								next(err);
+								return;
+							} else {
+								context.subcategory_info = rows[0];
+								res.render('categories', context);
+							}
+						});
+					} else {
+						res.render('categories', context);
+					}
 				}
 			});
 		}
@@ -373,14 +415,18 @@ app.post('/addAuthor', function(req, res, next){
 		[first_name, last_name, birthdate, country, gender], 
 		function(err, result){
 		if(err){
-			res.send({response: "Database error"});
+			// res.send({response: "Database error"});
+			console.log(err);
+			console.log("error:");
+			console.log(err.Error = "ER_DUP_ENTRY");
 			next(err);
 			return;
 		} else {
 			console.log("Successful author entry");
-			res.redirect("/listAuthors");
+			// res.redirect("/listAuthors");
 		}
 	});
+	res.redirect("/listAuthors");
 });
 
 app.post('/addUser', function(req, res, next){
@@ -442,6 +488,20 @@ app.post('/addCategory', function(req, res, next){
 	});
 });
 
+app.post('/editCategory', function(req, res, next){
+	var category_id = req.body.category_id;
+	var category = req.body.category_name;
+	mysql.pool.query("UPDATE Category SET name = ? WHERE id = ?", [category, category_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('categories');
+		}
+	});
+});
+
 app.post('/addSubCategory', function(req, res, next){
 	var subcategory = req.body.subcategory_name;
 	var category_id = req.body.category_id;
@@ -456,6 +516,21 @@ app.post('/addSubCategory', function(req, res, next){
 	});
 });
 
+app.post('/editSubCategory', function(req, res, next){
+	var subcategory_id = req.body.subcategory_id;
+	var subcategory = req.body.subcategory_name;
+	var category_id = req.body.category_id;
+	mysql.pool.query("UPDATE SubCategory SET name = ?, category_id = ? WHERE id = ?", [subcategory, category_id, subcategory_id], function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('categories');
+		}
+	});
+})
+
 app.post('/addFormat', function(req, res, next){
 	var format = req.body.format_name;
 	mysql.pool.query("INSERT INTO Format (format) VALUES (?)", [format], function(err, result){
@@ -467,6 +542,18 @@ app.post('/addFormat', function(req, res, next){
 			res.redirect('formats');
 		}
 	});
+});
+
+app.post('/editFormat', function(req, res, next){
+	var format = req.body.format_name;
+	var format_id = req.body.format_id;
+	mysql.pool.query("UPDATE FORMAT SET format = ? WHERE id = ?", [format, format_id], function(err, result){
+		if(err){
+
+		} else {
+			res.redirect('formats');
+		}
+	})
 });
 
 /*************************************************
@@ -708,7 +795,9 @@ app.get('/editAuthor', function(req, res, next){
 			context.author_info = rows[0];
 
 			// format the DOB to a string so that it can populate the form DOB value
-			context.author_info.dob = context.author_info.dob.toISOString().split("T")[0];
+			if(context.author_info){
+				context.author_info.dob = context.author_info.dob.toISOString().split("T")[0];
+			}
 
 			// get the current valid countries
 			mysql.pool.query("SELECT country, id AS country_id FROM Country", function(err, rows, result){
