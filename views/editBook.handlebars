@@ -16,6 +16,7 @@
 						{{/each}}
 					</select><br>
 		Secondary Authors: <select multiple name="addl_authors">
+						<option value=""></option>
 						{{#each selected_authors}}
 						<option value="{{this.id}}" id="addl_author_{{this.id}}" selected="selected">{{this.lastName}}, {{this.firstName}}</option>
 						{{/each}}
