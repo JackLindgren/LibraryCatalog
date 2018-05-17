@@ -77,7 +77,6 @@ app.get('/listBooks', function(req, res, next){
 			return;
 		}
 		context.books = rows;
-		console.log(context);
 		res.render('bookList', context); 
 	});
 });
@@ -293,7 +292,9 @@ app.get('/stats', function(req, res, render){
 app.get('/bookDetails', function(req, res, next){
 	var context = {};
 	var book_id = req.query.book_id;
-	mysql.pool.query("SELECT Book.title, Book.year, Category.name AS categoryName, SubCategory.name AS subCategoryName, Language.language, Author.firstName, Author.lastName, Country.country \
+	mysql.pool.query("SELECT Book.title, Book.year, Book.is_anthology, \
+		Category.name AS categoryName, SubCategory.name AS subCategoryName, \
+		Language.language, Author.firstName, Author.lastName, Country.country \
 		FROM Book \
 		LEFT JOIN SubCategory ON Book.category_id = SubCategory.id \
 		LEFT JOIN Category ON SubCategory.category_id = Category.id \
@@ -342,12 +343,16 @@ app.post('/addBook', function(req, res, next){
 	var year = req.body.book_year;
 	var language_id = req.body.book_language;
 	var category_id = req.body.book_category;
+	var is_anthology = 0;
+	if(req.body.is_anthology){
+		is_anthology = 1;
+	}
 
-	console.log(author_id);
+	console.log("is anthology: " + is_anthology);
 
-	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id, category_id) \
-		VALUES (?, ?, ?, ?, ?)", 
-		[title, year, language_id, author_id, category_id], 
+	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id, category_id, is_anthology) \
+		VALUES (?, ?, ?, ?, ?, ?)", 
+		[title, year, language_id, author_id, category_id, is_anthology], 
 		function(err, result){
 		if(err){
 			console.log(err);
@@ -558,7 +563,7 @@ app.get('/editBook', function(req, res, next){
 	var author_names = [];
 	var languages = [];
 
-	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
+	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, b.is_anthology, \
 		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id, \
 		b.category_id, s.name \
 		FROM Book AS b \
@@ -615,13 +620,17 @@ app.post('/editBook', function(req, res, next){
 	var book_id = parseInt(req.body.book_id);
 	var lang_id = parseInt(req.body.book_language);
 	var category_id = req.body.book_category
+	var is_anthology = 0;
+	if(req.body.is_anthology){
+		is_anthology = 1;
+	}
 
 	var addl_authors = req.body.addl_authors;
 
 	console.log(req.body);
 
-	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ? WHERE Book.id = ? ", 
-		[title, year, lang_id, author_id, category_id, book_id], function(err, result){
+	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ? ", 
+		[title, year, lang_id, author_id, category_id, is_anthology, book_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);

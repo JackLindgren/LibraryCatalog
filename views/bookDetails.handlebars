@@ -10,3 +10,8 @@
 <br>Sub-Category: {{book_info.subCategoryName}}
 <br>Language: {{book_info.language}}
 <br>Country: {{book_info.country}}
+<br>Anthology: {{#if book_info.is_anthology}}
+Yes
+{{else}}
+No
+{{/if}}
