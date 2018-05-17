@@ -549,7 +549,9 @@ app.post('/editFormat', function(req, res, next){
 	var format_id = req.body.format_id;
 	mysql.pool.query("UPDATE FORMAT SET format = ? WHERE id = ?", [format, format_id], function(err, result){
 		if(err){
-
+			res.send({response: "Database error"});
+			next(err);
+			return;
 		} else {
 			res.redirect('formats');
 		}
