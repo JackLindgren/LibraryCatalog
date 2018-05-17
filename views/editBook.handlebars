@@ -1,6 +1,6 @@
 <h1>Add Book</h1>
 
-<form id="book_form" action="{{route}}" method="post">
+<form id="book_form" action="editBook" method="post">
 
 	<fieldset id="form_field">
 
@@ -8,12 +8,18 @@
 
 		Title:		<input type="text" name="book_title" id="book_title" value="{{book_info.title}}"><br>
 		Author:		<select name="author" id="book_author">
-						{{#each author_names}}
+						{{#each selected_authors}}
+						<option value="{{this.id}}" id="author_{{this.id}}">{{this.lastName}}, {{this.firstName}}</option>
+						{{/each}}
+						{{#each non_selected_authors}}
 						<option value="{{this.id}}" id="author_{{this.id}}">{{this.lastName}}, {{this.firstName}}</option>
 						{{/each}}
 					</select><br>
 		Secondary Authors: <select multiple name="addl_authors">
-						{{#each author_names}}
+						{{#each selected_authors}}
+						<option value="{{this.id}}" id="addl_author_{{this.id}}" selected="selected">{{this.lastName}}, {{this.firstName}}</option>
+						{{/each}}
+						{{#each non_selected_authors}}
 						<option value="{{this.id}}" id="addl_author_{{this.id}}">{{this.lastName}}, {{this.firstName}}</option>
 						{{/each}}
 					</select><br>
@@ -31,10 +37,14 @@
 		{{#if book_info.is_anthology}}
 		<input type="checkbox" name="is_anthology" value="1" checked="checked">Is anthology<br>
 		{{else}}
-		<input type="checkbox" name="is_anthology" value="1" checked="checked">Is anthology<br>
+		<input type="checkbox" name="is_anthology" value="1">Is anthology<br>
 		{{/if}}
 
+		{{#if book_info.book_id}}
 		<input type="hidden" name="book_id"     id="book_id"     value="{{book_info.book_id}}">
+		{{else}}
+		<input type="hidden" name="book_id"     id="book_id"     value="NEW">
+		{{/if}}
 		<input type="hidden" name="language_id" id="language_id" value="{{book_info.language_id}}">
 		<input type="hidden" name="author_id"   id="author_id"   value="{{book_info.auth_id}}">
 		<input type="hidden" name="category_id" id="category_id" value="{{book_info.category_id}}">

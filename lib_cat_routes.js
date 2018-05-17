@@ -332,39 +332,6 @@ app.get('/bookDetails', function(req, res, next){
 * - post a new book
 * - post a new author
 *************************************************/
-// add a book - POST
-app.post('/addBook', function(req, res, next){
-	console.log("POST request received on the server-side");
-	console.log(req.body);
-
-	var title = req.body.book_title;
-	var author_id = req.body.author;
-	var language = req.body.book_language;
-	var year = req.body.book_year;
-	var language_id = req.body.book_language;
-	var category_id = req.body.book_category;
-	var is_anthology = 0;
-	if(req.body.is_anthology){
-		is_anthology = 1;
-	}
-
-	console.log("is anthology: " + is_anthology);
-
-	mysql.pool.query("INSERT INTO Book (title, year, language_id, author_id, category_id, is_anthology) \
-		VALUES (?, ?, ?, ?, ?, ?)", 
-		[title, year, language_id, author_id, category_id, is_anthology], 
-		function(err, result){
-		if(err){
-			console.log(err);
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else {
-			console.log("Successful book entry");
-			res.redirect("/listBooks");
-		}
-	});
-});
 
 // add an author - POST
 app.post('/addAuthor', function(req, res, next){
@@ -553,16 +520,6 @@ app.get('/editBook', function(req, res, next){
 	
 	var context = {};
 
-	if(book_id){
-		context.route = "/editBook";
-	} else {
-		context.route = "/addBook";
-	}
-
-	// send back a list of author names and languages 
-	var author_names = [];
-	var languages = [];
-
 	mysql.pool.query("SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, b.is_anthology, \
 		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id, \
 		b.category_id, s.name \
@@ -587,13 +544,13 @@ app.get('/editBook', function(req, res, next){
 					return;
 				} else {
 					context.languages = rows;
-					mysql.pool.query("SELECT id, firstName, lastName FROM Author ORDER BY lastName, firstName", function(err, rows, result){
+					mysql.pool.query("SELECT id, firstName, lastName FROM Author WHERE id NOT IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName", [book_id], function(err, rows, result){
 						if(err){
 							res.send({response: "Database error"});
 							next(err);
 							return;
 						} else {
-							context.author_names = rows;
+							context.non_selected_authors = rows;
 							mysql.pool.query("SELECT id, name FROM SubCategory ORDER BY name", function(err, rows, result){
 								if(err){
 									res.send({response: "Database error"});
@@ -601,7 +558,16 @@ app.get('/editBook', function(req, res, next){
 									return;
 								} else {
 									context.categories = rows;
-									res.render('editBook', context);
+									mysql.pool.query("SELECT id, firstName, lastName FROM Author WHERE id IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName", [book_id], function(err, rows, result){
+										if(err){
+											res.send({response: "Database error"});
+											next(err);
+											return;
+										} else {
+											context.selected_authors = rows;
+											res.render('editBook', context);
+										}
+									});
 								}
 							});
 						}
@@ -617,26 +583,43 @@ app.post('/editBook', function(req, res, next){
 	var author_id = req.body.author;
 	var language = req.body.book_language;
 	var year = req.body.book_year;
-	var book_id = parseInt(req.body.book_id);
 	var lang_id = parseInt(req.body.book_language);
 	var category_id = req.body.book_category
+	var addl_authors = req.body.addl_authors;
+	var book_id = req.body.book_id;
+
 	var is_anthology = 0;
 	if(req.body.is_anthology){
 		is_anthology = 1;
 	}
 
-	var addl_authors = req.body.addl_authors;
+	var new_book = false;
+	if(book_id == "NEW"){
+		new_book = true;
+	}
 
-	console.log(req.body);
+	var insert_query = "INSERT INTO Book (title,     year,     language_id,     author_id,     category_id,     is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
+	var update_query = "UPDATE Book SET   title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
+	var book_query = null;
 
-	mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ? ", 
-		[title, year, lang_id, author_id, category_id, is_anthology, book_id], function(err, result){
+	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];
+	
+	if(new_book){
+		// if it's a new book, we will use the insert query
+		book_query = insert_query;
+	} else {
+		// if it's an edit to an existing book, we'll use the update query
+		book_query = update_query;
+		// and we'll need to include the book ID
+		book_query_vals.push(book_id);
+	}
+
+	mysql.pool.query(book_query, book_query_vals, function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
 			return;
 		} else {
-			console.log("Successful book entry");
 			if(addl_authors){
 				var multi_author_statement = "INSERT INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
 				var multi_author_vars;
@@ -663,7 +646,43 @@ app.post('/editBook', function(req, res, next){
 				res.redirect("/listBooks");
 			}
 		}
-	});
+	})
+	
+	// mysql.pool.query("UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ? ", 
+	// 	[title, year, lang_id, author_id, category_id, is_anthology, book_id], function(err, result){
+	// 	if(err){
+	// 		res.send({response: "Database error"});
+	// 		next(err);
+	// 		return;
+	// 	} else {
+	// 		console.log("Successful book entry");
+	// 		if(addl_authors){
+	// 			var multi_author_statement = "INSERT INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
+	// 			var multi_author_vars;
+	// 			if(typeof(addl_authors) == "string"){
+	// 				multi_author_vars = [book_id, addl_authors];
+	// 			} else {
+	// 				multi_author_vars = [book_id, addl_authors[0]];
+	// 				for(var i = 1; i < addl_authors.length; i++){
+	// 					multi_author_statement += ", (?, ?) ";
+	// 					multi_author_vars.push(book_id);
+	// 					multi_author_vars.push(addl_authors[i]);
+	// 				}
+	// 			}
+	// 			mysql.pool.query(multi_author_statement, multi_author_vars, function(err, result){
+	// 				if(err){
+	// 					res.send({response: "Database error"});
+	// 					next(err);
+	// 					return;
+	// 				} else {
+	// 					res.redirect("/listBooks");
+	// 				}
+	// 			})
+	// 		} else {
+	// 			res.redirect("/listBooks");
+	// 		}
+	// 	}
+	// });
 });
 
 app.get('/editAuthor', function(req, res, next){
