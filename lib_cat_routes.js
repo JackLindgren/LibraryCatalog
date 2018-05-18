@@ -60,11 +60,11 @@ app.get('/listBooks', function(req, res, next){
 		query_args.push(req.query.language_id);
 	}
 	if(req.query.country_id){
-		book_query += " AND a.country_id = ";
+		book_query += " AND a.country_id = ?";
 		query_args.push(req.query.country_id);
 	}
 	if(req.query.gender){
-		book_query += " AND a.gender = '?'";
+		book_query += " AND a.gender = ?";
 		query_args.push(req.query.gender);
 	}
 	if(req.query.category_id){
