@@ -700,6 +700,10 @@ app.post('/editBook', function(req, res, next){
 	var addl_authors = req.body.addl_authors;
 	var book_id = req.body.book_id;
 
+	if(!category_id){
+		category_id = null;
+	}
+
 	var is_anthology = 0;
 	if(req.body.is_anthology){
 		is_anthology = 1;
