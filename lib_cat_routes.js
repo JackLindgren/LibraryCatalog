@@ -7,7 +7,7 @@ var app = express();
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
-app.set('port', 6848);
+app.set('port', process.argv[2]);
 app.use(express.static('public'));
 
 /*************************************************
@@ -994,7 +994,6 @@ app.get('/deleteUser', function(req, res, next){
 })
 
 app.get('/deleteAuthor', function(req, res, next){
-
 	mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.author_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
@@ -1004,7 +1003,6 @@ app.get('/deleteAuthor', function(req, res, next){
 			res.redirect("/listAuthors");
 		}
 	});
-
 });
 
 app.get('/deleteSubCategory', function(req, res, next){
