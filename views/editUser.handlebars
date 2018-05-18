@@ -1,6 +1,6 @@
 <h1>Add Author</h1>
 
-<form id="user_form" action="{{route}}" method="post">
+<form id="user_form" action="{{route}}" method="post" onsubmit="return validateUserForm()">
 	<fieldset id="form_field">
 		<legend id="form_legend">Enter User Information</legend>
 		User Name:		<input type="text" name="user_name" id="user_name" value="{{user_info.user_name}}"><br>
@@ -15,4 +15,5 @@
 	</fieldset>
 </form>
 
+<script src="validateForm.js"></script>
 <!-- <script src="selectionSetUser.js"></script> -->

@@ -409,16 +409,16 @@ app.post('/addAuthor', function(req, res, next){
 	var country = req.body.author_country;
 	var gender = req.body.gender;
 
-	console.log(birthdate);
+	console.log("Birthdate: " + birthdate);
 
-	mysql.pool.query("INSERT INTO Author (firstName, lastName, dob, country_id, gender) VALUES (?, ?, ?, ?, ?)", 
+	mysql.pool.query("INSERT IGNORE INTO Author (firstName, lastName, dob, country_id, gender) VALUES (?, ?, ?, ?, ?)", 
 		[first_name, last_name, birthdate, country, gender], 
 		function(err, result){
 		if(err){
-			// res.send({response: "Database error"});
-			console.log(err);
-			console.log("error:");
-			console.log(err.Error = "ER_DUP_ENTRY");
+			res.send({response: "Database error"});
+			// console.log(err);
+			// console.log("error:");
+			// console.log(err.Error = "ER_DUP_ENTRY");
 			next(err);
 			return;
 		} else {
@@ -433,7 +433,7 @@ app.post('/addUser', function(req, res, next){
 	var user_name = req.body.user_name;
 	var user_email = req.body.user_email;
 
-	mysql.pool.query("INSERT INTO User (user_name, user_email) VALUES (?, ?)",
+	mysql.pool.query("INSERT IGNORE INTO User (user_name, user_email) VALUES (?, ?)",
 		[user_name, user_email],
 		function(err, result){
 		if(err){
@@ -450,7 +450,7 @@ app.post('/addUser', function(req, res, next){
 app.post('/addLanguage', function(req, res, next){
 	var language = req.body.language_name;
 	var language_family = req.body.language_family;
-	mysql.pool.query("INSERT INTO Language (language, language_family) VALUES (?, ?)", [language, language_family], function(err, result){
+	mysql.pool.query("INSERT IGNORE INTO Language (language, language_family) VALUES (?, ?)", [language, language_family], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -464,7 +464,7 @@ app.post('/addLanguage', function(req, res, next){
 app.post('/addCountry', function(req, res, next){
 	var country = req.body.country_name;
 	var region = req.body.region_name;
-	mysql.pool.query("INSERT INTO Country (country, region) VALUES (?, ?)", [country, region], function(err, result){
+	mysql.pool.query("INSERT IGNORE INTO Country (country, region) VALUES (?, ?)", [country, region], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -477,7 +477,7 @@ app.post('/addCountry', function(req, res, next){
 
 app.post('/addCategory', function(req, res, next){
 	var category = req.body.category_name;
-	mysql.pool.query("INSERT INTO Category (name) VALUES (?)", [category], function(err, result){
+	mysql.pool.query("INSERT IGNORE INTO Category (name) VALUES (?)", [category], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -505,7 +505,7 @@ app.post('/editCategory', function(req, res, next){
 app.post('/addSubCategory', function(req, res, next){
 	var subcategory = req.body.subcategory_name;
 	var category_id = req.body.category_id;
-	mysql.pool.query("INSERT INTO SubCategory (name, category_id) VALUES (?, ?)", [subcategory, category_id], function(err, result){
+	mysql.pool.query("INSERT IGNORE INTO SubCategory (name, category_id) VALUES (?, ?)", [subcategory, category_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -533,7 +533,7 @@ app.post('/editSubCategory', function(req, res, next){
 
 app.post('/addFormat', function(req, res, next){
 	var format = req.body.format_name;
-	mysql.pool.query("INSERT INTO Format (format) VALUES (?)", [format], function(err, result){
+	mysql.pool.query("INSERT IGNORE INTO Format (format) VALUES (?)", [format], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
@@ -608,7 +608,7 @@ app.post('/bookUser', function(req, res, next){
 	console.log(format_id);
 	console.log(date_read);
 
-	mysql.pool.query("INSERT INTO BookUser (book_id, user_id, rating, date_added, date_read, format_id) \
+	mysql.pool.query("INSERT IGNORE INTO BookUser (book_id, user_id, rating, date_added, date_read, format_id) \
 		VALUES (?, ?, ?, (SELECT CURDATE()), ?, ?)", 
 		[book_id, user_id, rating, date_read, format_id],
 		function(err, result){
@@ -714,7 +714,7 @@ app.post('/editBook', function(req, res, next){
 		new_book = true;
 	}
 
-	var insert_query = "INSERT INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
+	var insert_query = "INSERT IGNORE INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
 	var update_query = "UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
 	var book_query = null;
 
@@ -745,7 +745,7 @@ app.post('/editBook', function(req, res, next){
 				} else {
 					if(addl_authors){
 						// if there are additional authors, add them
-						var multi_author_statement = "INSERT INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
+						var multi_author_statement = "INSERT IGNORE INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
 						var multi_author_vars;
 						if(typeof(addl_authors) == "string"){
 							// single author
@@ -801,9 +801,11 @@ app.get('/editAuthor', function(req, res, next){
 			context.author_info = rows[0];
 
 			// format the DOB to a string so that it can populate the form DOB value
-			if(context.author_info){
-				context.author_info.dob = context.author_info.dob.toISOString().split("T")[0];
-			}
+			// if(context.author_info && context.author_info.dob){
+				// console.log(context.author_info.dob);
+				// console.log(typeof(context.author_info.dob));
+				// context.author_info.dob = context.author_info.dob.toISOString().split("T")[0];
+			// }
 
 			// get the current valid countries
 			mysql.pool.query("SELECT country, id AS country_id FROM Country", function(err, rows, result){
@@ -824,6 +826,9 @@ app.post('/editAuthor', function(req, res, next){
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
 	var birthdate = req.body.author_dob;
+	if(!birthdate){
+		birthdate = null;
+	}
 	var country_id = req.body.author_country;
 	var gender = req.body.gender;
 	var author_id = req.body.author_id;
@@ -920,7 +925,7 @@ app.post('/addSecondaryAuthor', function(req, res, next){
 	var author_id = req.body.author;
 	console.log(book_id + " " + author_id);
 
-	mysql.pool.query("INSERT INTO BookAuthor (book_id, author_id) VALUES (?, ?)", [book_id, author_id], function(err, result){
+	mysql.pool.query("INSERT IGNORE INTO BookAuthor (book_id, author_id) VALUES (?, ?)", [book_id, author_id], function(err, result){
 		if(err){
 			res.send({response: "Database error"});
 			next(err);
