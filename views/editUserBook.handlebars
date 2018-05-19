@@ -1,0 +1,32 @@
+<h1>Edit a Book in Shelf</h1>
+
+<p>This is for editing the rating and date read of a book on your shelf</p>
+
+<form id="edit_shelf_book" action="/editUserBook" method="post">
+	<fieldset>
+		<legend>Update book info</legend>
+		Title: {{book_info.title}}<br>
+		Author: {{book_info.lastName}}, {{book_info.firstName}}<br>
+		Language: {{book_info.language}}<br>
+		Country: {{book_info.country}}<br>
+		Year: {{book_info.year}}<br>
+		Date Added: {{book_info.date_added}}<br>
+		Format: {{book_info.format}}<br>
+		Rating: <select name="rating">
+					{{#if book_info.rating}}
+					<option value="{{book_info.rating}}" selected="selected">{{book_info.rating}}</option>
+					{{/if}}
+					<option value=""></option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+				</select><br>
+		Date Read: <input type="date" name="date_read" value="{{book_info.date_read}}"><br>
+		<input type="hidden" name="book_id" value="{{book_info.book_id}}">
+		<input type="hidden" name="user_id" value="{{book_info.user_id}}">
+		<input type="hidden" name="format_id" value="{{book_info.format_id}}">
+		<input type="submit" value="Submit">
+	</fieldset>
+</form>

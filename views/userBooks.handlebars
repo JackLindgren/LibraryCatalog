@@ -1,5 +1,9 @@
 <h1>Books</h1>
 
+{{#if user_info}}
+<h2>{{user_info.user_name}}</h2>
+{{/if}}
+
 <table>
 	<tr>
 		<th>Title</th>
@@ -9,6 +13,7 @@
 		<th>Year</th>
 		<th>Gender</th>
 		<th>Category</th>
+		<th>Rating</th>
 		<th>Added</th>
 		<th>Read</th>
 		<th>Format</th>
@@ -19,17 +24,18 @@
 	<tr>
 		<td>{{this.title}}</td>
 		<td><a href="/listBooks?author_id={{this.auth_id}}">{{this.lastName}}, {{this.firstName}}</a></td>
-		<td><a href="/listBooks?language_id={{this.lang_id}}">{{this.language}}</a></td>
+		<td>{{this.language}}</td>
 		<td><a href="/listBooks?country_id={{this.country_id}}">{{this.country}}</a></td>
 		<td>{{this.year}}</td>
 		<td><a href="/listBooks?gender={{this.gender}}">{{this.gender}}</a></td>
 		<td><a href="/listBooks?category_id={{this.category_id}}">{{this.category_name}}</a></td>
+		<td>{{this.rating}}</td>
 		<td>{{this.date_added}}</td>
 		<td>{{this.date_read}}</td>
 		<td>{{this.format}}</td>
 		<td><a href="/editBook?book_id={{this.book_id}}">Edit</a></td>
-		<td><a href="/deleteBook?book_id={{this.book_id}}">Delete</a></td>
-		<td><a href="/removeBook?user_id={{this.user_id}}&book_id={{this.book_id}}">Remove From Shelf</a></td>
+		<td><a href="/removeBook?user_id={{this.user_id}}&book_id={{this.book_id}}&format_id={{this.format_id}}">Remove From Shelf</a></td>
+		<td><a href="/editUserBook?user_id={{this.user_id}}&book_id={{this.book_id}}&format_id={{this.format_id}}">Edit Shelf Info</a></td>
 	<tr>
 	{{/each}}
 </table>

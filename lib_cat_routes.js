@@ -179,7 +179,7 @@ app.get('/listUserBooks', function(req, res, next){
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
 		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
 		sc.name AS category_name, \
-		bu.user_id, u.user_name, bu.date_added, bu.date_read, \
+		bu.user_id, u.user_name, bu.rating, bu.date_added, bu.date_read, bu.format_id, \
 		f.format \
 		FROM Book AS b \
 		LEFT JOIN Author AS a ON b.author_id = a.id \
@@ -198,16 +198,80 @@ app.get('/listUserBooks', function(req, res, next){
 			return;
 		} else {
 			context.books = rows;
+			context.user_info = { user_id: rows[0].user_id, user_name: rows[0].user_name };
 			res.render('userBooks', context);
 		}
 	});
 });
+
+app.get('/editUserBook', function(req, res, next){
+	console.log("In edit User Book");
+	var user_id = req.query.user_id;
+	var book_id = req.query.book_id;
+	var format_id = req.query.format_id;
+	var context = {};
+	mysql.pool.query("SELECT Book.title, Language.language, Book.year, \
+		bu.rating, bu.date_added, bu.date_read, Format.format, \
+		Author.firstName, Author.lastName, Country.country, \
+		bu.book_id, bu.user_id, bu.format_id \
+		FROM Book \
+		INNER JOIN BookUser AS bu ON Book.id = bu.book_id \
+		INNER JOIN Format ON Format.id = bu.format_id \
+		INNER JOIN Author ON Book.author_id = Author.id \
+		INNER JOIN Language ON Book.language_id = Language.id \
+		INNER JOIN Country ON Author.country_id = Country.id \
+		WHERE bu.user_id = ? \
+		AND bu.book_id = ? \
+		AND bu.format_id = ? ",
+		[user_id, book_id, format_id],
+		function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			context.book_info = rows[0];
+			console.log(context);
+			res.render('editUserBook', context);
+		}
+	});
+});
+
+app.post('/editUserBook', function(req, res, next){
+	
+	var user_id = req.body.user_id;
+	var book_id = req.body.book_id;
+	var format_id = req.body.format_id;
+	var rating = req.body.rating;
+	var date_read = req.body.date_read;
+
+	if(!rating){
+		rating = null;
+	}
+	if(!date_read){
+		date_read = null;
+	}
+
+	mysql.pool.query("UPDATE BookUser SET rating = ?, date_read = ? WHERE book_id = ? AND user_id = ? AND format_id = ?",
+		[rating, date_read, book_id, user_id, format_id],
+		function(err, result){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.redirect('/listUserBooks?user_id=' + user_id);
+		}
+	})
+})
 
 // render form to manage user-book relationship
 app.get('/bookUser', function(req, res, next){
 	var context = {};
 	mysql.pool.query("SELECT id, user_name, user_email FROM User", function(err, rows, result){
 		if(err){
+			res.send({response: "Database error"});
+			next(err);
 			return;
 		} else {
 			context.users = rows;
@@ -921,10 +985,11 @@ app.get('/removeBook', function(req, res, next){
 	
 	var book_id = req.query.book_id;
 	var user_id = req.query.user_id;
+	var format_id = req.query.format_id;
 
 	// if the book and user both exist, delete the BookUser association
 	if(book_id && user_id){
-		mysql.pool.query("DELETE FROM BookUser WHERE book_id = ? AND user_id = ?", [book_id, user_id], function(err, result){
+		mysql.pool.query("DELETE FROM BookUser WHERE book_id = ? AND user_id = ? AND format_id = ?", [book_id, user_id, format_id], function(err, result){
 			if(err){
 				res.send({response: "Database error"});
 				next(err);
