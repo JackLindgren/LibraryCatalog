@@ -1,10 +1,6 @@
 <h1>Categories</h1>
 
-{{#if category_info}}
 <form id="category_form" action="/editCategory" method="post" onsubmit="return validateCategoryForm()">
-{{else}}
-<form id="category_form" action="/addCategory" method="post" onsubmit="return validateCategoryForm()">
-{{/if}}
 	<fieldset>
 		<legend>Enter a category</legend>
 		{{#if category_info}}
@@ -17,11 +13,7 @@
 	</fieldset>
 </form>
 
-{{#if subcategory_info}}
 <form id="subcategory_form" action="/editSubCategory" method="post" onsubmit="return validateSubCategoryForm()">
-{{else}}
-<form id="subcategory_form" action="/addSubCategory" method="post" onsubmit="return validateSubCategoryForm()">
-{{/if}}
 	<fieldset>
 		<legend>Enter a sub category</legend>
 		{{#if subcategory_info}}

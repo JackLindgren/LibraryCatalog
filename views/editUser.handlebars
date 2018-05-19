@@ -1,6 +1,6 @@
 <h1>Add Author</h1>
 
-<form id="user_form" action="{{route}}" method="post" onsubmit="return validateUserForm()">
+<form id="user_form" action="/editUser" method="post" onsubmit="return validateUserForm()">
 	<fieldset id="form_field">
 		<legend id="form_legend">Enter User Information</legend>
 		User Name:		<input type="text" name="user_name" id="user_name" value="{{user_info.user_name}}"><br>

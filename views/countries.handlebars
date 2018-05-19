@@ -1,10 +1,6 @@
 <h1>Countries</h1>
 
-{{#if country_info}}
 <form id="country_form" action="/editCountry" method="post" onsubmit="return validateCountryForm()">
-{{else}}
-<form id="country_form" action="/addCountry" method="post" onsubmit="return validateCountryForm()">
-{{/if}}
 	<fieldset>
 		<legend>Enter a country</legend>
 		Country: <input type="text" name="country_name" value="{{country_info.country}}"><br>

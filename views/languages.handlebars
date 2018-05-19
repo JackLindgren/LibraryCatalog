@@ -1,10 +1,6 @@
 <h1>Languages</h1>
 
-{{#if language_info}}
 <form id="language_form" action="/editLanguage" method="post" onsubmit="return validateLanguageForm()">
-{{else}}
-<form id="language_form" action="/addLanguage" method="post" onsubmit="return validateLanguageForm()">
-{{/if}}
 	<fieldset>
 		<legend>Enter a language</legend>
 		Language: <input type="text" name="language_name" value="{{language_info.language}}"><br>
