@@ -1,0 +1,22 @@
+<h1>Insert Pages</h1>
+
+<a href="/editBook">Add New Book</a> (including the Author:Book many:many relationshp - any secondary authors selected will create a many:many Book:Author record)<br>
+<a href="/editAuthor">Add New Author</a><br>
+<a href="/editUser">Add New User</a><br>
+<a href="/bookUser">Add a Book:User records (many:many)</a><br>
+<a href="/languages">Add a new Language</a><br>
+<a href="/countries">Add a new Country</a><br>
+<a href="/categories">Add a new Category or Subcategory</a><br>
+<a href="/formats">Add a new Format</a><br>
+
+<h1>Delete Pages</h1>
+<a href="/listBooks">Delete Books</a> ("delete" link)<br>
+<a href="/listAuthors">Delete Authors</a> ("delete" link)<br>
+<a href="/listUsers">Delete Users</a> ("delete" link)<br>
+<a href="/languages">Delete Languages</a> ("delete" link)<br>
+<a href="/countries">Delete Countries</a> ("delete" link)<br>
+<a href="/categories">Delete Categories or Subcategories</a> ("delete" link)<br>
+<a href="/formats">Delete Formats</a> ("delete" link)<br>
+<br>
+<a href="/editBook?book_id=1436">Delete Author:Book (many:many) Association</a> select the blank author - this will clear out all secondary authors<br>
+<a href="/listUserBooks?user_id=1">Delete User:Book (many:many) Association</a> "delete" link will destroy the association record, removing the book from the user's shelf<br>

@@ -30,6 +30,21 @@ app.get('/', function(req, res, next){
 });
 
 /*************************************************
+* Routes for index pages
+*************************************************/
+app.get('/showIndex', function(req, res, next){
+	res.render('showIndex');
+});
+
+app.get('/insertDeleteIndex', function(req, res, next){
+	res.render('insertDeleteIndex');
+});
+
+app.get('/updateIndex', function(req, res, next){
+	res.render('updateIndex');
+})
+
+/*************************************************
 * List functions:
 * books
 * authors
@@ -213,13 +228,15 @@ app.get('/editUserBook', function(req, res, next){
 	mysql.pool.query("SELECT Book.title, Language.language, Book.year, \
 		bu.rating, bu.date_added, bu.date_read, Format.format, \
 		Author.firstName, Author.lastName, Country.country, \
-		bu.book_id, bu.user_id, bu.format_id \
+		bu.book_id, bu.user_id, bu.format_id, \
+		User.user_name \
 		FROM Book \
 		INNER JOIN BookUser AS bu ON Book.id = bu.book_id \
 		INNER JOIN Format ON Format.id = bu.format_id \
 		INNER JOIN Author ON Book.author_id = Author.id \
 		INNER JOIN Language ON Book.language_id = Language.id \
 		INNER JOIN Country ON Author.country_id = Country.id \
+		INNER JOIN User ON bu.user_id = User.id \
 		WHERE bu.user_id = ? \
 		AND bu.book_id = ? \
 		AND bu.format_id = ? ",
