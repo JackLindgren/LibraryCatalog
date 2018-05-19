@@ -27,17 +27,40 @@ function validateAuthorForm(){
 }
 
 function validateUserForm(){
+	console.log("validating user form");
 	var user_name = document.forms["user_form"]["user_name"].value;
 	user_name = user_name.trim();
 	var user_email = document.forms["user_form"]["user_email"].value;
 	user_email = user_email.trim();
+	var user_id = document.forms["user_form"]["user_id"].value;
 	if(!user_name){
 		alert("User must have a name");
 		return false;
-	}
-	if(!user_email){
+	} else if (!user_email){
 		alert("User must have an email address");
 		return false;
+	} else {
+		console.log("name and email are present");
+		var req = new XMLHttpRequest();
+
+		var request_url = '/getUser?user_email=' + user_email;
+
+		console.log("Request URL: " + request_url);
+		req.open('GET', request_url, false);
+
+		req.send(null);
+
+		var response = JSON.parse(req.responseText);
+		var response = JSON.parse(req.responseText)[0];
+
+		// if the address is already in the system, and the ID doesn't belong to the user being edited
+		// then raise an error
+		if(response.id && response.id != user_id){
+			alert("Email address already taken");
+			return false;
+		} else {
+			return true;
+		}
 	}
 }
 

@@ -4,12 +4,7 @@
 	<fieldset id="form_field">
 		<legend id="form_legend">Enter User Information</legend>
 		User Name:		<input type="text" name="user_name" id="user_name" value="{{user_info.user_name}}"><br>
-		User Email:		{{#if editing}}
-						<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}" readonly><br>
-						{{else}}
-						<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}"><br>
-						{{/if}}
-		
+		User Email:		<input type="text" name="user_email" id="user_email" value="{{user_info.user_email}}"><br>
 		<input type="hidden" name="user_id" value="{{user_info.id}}">
 		<input type="submit" id="new_user" value="Submit">
 	</fieldset>

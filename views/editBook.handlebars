@@ -1,4 +1,8 @@
+{{#if book_info}}
+<h1>Edit Book</h1>
+{{else}}
 <h1>Add Book</h1>
+{{/if}}
 
 <form id="book_form" action="/editBook" method="post" onsubmit="return validateBookForm()">
 
@@ -52,5 +56,10 @@
 	</fieldset>
 
 </form>
+
+<h2>Instructions</h2>
+<p>Enter the book attributes. To set "secondary" authors for the book, select from the Secondary Authors box. If you are updating a book, any current secondary authors who are not checked will be removed, and any who are checked will be added. To clear out selected secondary authors, choose the empty entry at the top of the list.</p>
+<p>Category is optional. All other fields are required</p>
+
 <script src="selectionSetBook.js"></script>
 <script src="validateForm.js"></script>

@@ -1,4 +1,8 @@
+{{#if author_info}}
+<h1>Edit Author</h1>
+{{else}}
 <h1>Add Author</h1>
+{{/if}}
 
 <form id="author_form" action="/editAuthor" method="post" onsubmit="return validateAuthorForm()">
 	<fieldset id="form_field">
@@ -24,6 +28,9 @@
 		<input type="submit" id="new_author" value="Submit">
 	</fieldset>
 </form>
+
+<h2>Instructions</h2>
+<p>Set the author's attributes. First name + last name + DOB combination must be unique. DOB is not required.</p>
 
 <script src="selectionSetAuthor.js"></script>
 <script src="validateForm.js"></script>

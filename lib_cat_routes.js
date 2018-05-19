@@ -298,7 +298,6 @@ app.get('/listUsers', function(req, res, render){
 		} 
 		var context = {};
 		context.users = rows;
-		console.log(context);
 		res.render('userList', context);
 	});
 });
@@ -307,12 +306,6 @@ app.get('/listUsers', function(req, res, render){
 app.get('/editUser', function(req, res, next){
 	var user_id = req.query.user_id;
 	var context = {};
-	if(user_id){
-		context.editing = true;
-		context.route = '/editUser';
-	} else {
-		context.route = '/addUser';
-	}
 	mysql.pool.query("SELECT id, user_name, user_email FROM User WHERE id = ? LIMIT 1",
 		[user_id],
 		function(err, row, result){
@@ -324,6 +317,23 @@ app.get('/editUser', function(req, res, next){
 			context.user_info = row[0];
 			console.log(context);
 			res.render('editUser', context);
+		}
+	});
+});
+
+app.get('/getUser', function(req, res, next){
+	console.log("Getting user");
+	console.log("*******************************");
+	var user_email = req.query.user_email;
+	mysql.pool.query("SELECT id, user_email FROM User WHERE user_email = ?", user_email, function(err, rows, fields){
+		if(err){
+			res.send({response: "Database error"});
+			next(err);
+			return;
+		} else {
+			res.set('Content-Type', 'application/json');
+			res.status(200);
+			res.send(rows);
 		}
 	});
 });
