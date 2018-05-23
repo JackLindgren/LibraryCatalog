@@ -42,7 +42,7 @@ app.get('/insertDeleteIndex', function(req, res, next){
 
 app.get('/updateIndex', function(req, res, next){
 	res.render('updateIndex');
-})
+});
 
 /*************************************************
 * List functions:
@@ -219,6 +219,8 @@ app.get('/listUserBooks', function(req, res, next){
 	});
 });
 
+// form to edit a specific book instance in a user's shelf
+// meaning that we could edit the book's rating or it's date read
 app.get('/editUserBook', function(req, res, next){
 	console.log("In edit User Book");
 	var user_id = req.query.user_id;
@@ -269,7 +271,7 @@ app.post('/editUserBook', function(req, res, next){
 		date_read = null;
 	}
 
-	mysql.pool.query("UPDATE BookUser SET rating = ?, date_read = ? WHERE book_id = ? AND user_id = ? AND format_id = ?",
+	mysql.pool.query("UPDATE IGNORE BookUser SET rating = ?, date_read = ? WHERE book_id = ? AND user_id = ? AND format_id = ?",
 		[rating, date_read, book_id, user_id, format_id],
 		function(err, result){
 		if(err){
@@ -659,7 +661,7 @@ app.post('/editAuthor', function(req, res, next){
 	var author_id = req.body.author_id;
 
 	var insert_query = "INSERT IGNORE INTO Author (firstName, lastName, dob, country_id, gender) VALUES (?, ?, ?, ?, ?)";
-	var update_query = "UPDATE Author SET firstName = ?, lastName = ?, dob = ?, country_id = ?, gender = ? WHERE Author.id = ?";
+	var update_query = "UPDATE IGNORE Author SET firstName = ?, lastName = ?, dob = ?, country_id = ?, gender = ? WHERE Author.id = ?";
 	var author_query = null;
 	var author_query_vals = [first_name, last_name, birthdate, country_id, gender];
 
@@ -691,7 +693,7 @@ app.post('/editUser', function(req, res, next){
 	var user_email = req.body.user_email;
 
 	var insert_query = "INSERT IGNORE INTO User (user_name, user_email) VALUES (?, ?)";
-	var update_query = "UPDATE User SET user_name = ?, user_email = ? WHERE id = ?";
+	var update_query = "UPDATE IGNORE User SET user_name = ?, user_email = ? WHERE id = ?";
 	var user_query = null;
 
 	var user_query_vals = [user_name, user_email];
@@ -729,7 +731,7 @@ app.post('/editLanguage', function(req, res, next){
 	console.log(language_id, language, family);
 
 	var insert_query = "INSERT IGNORE INTO Language (language, language_family) VALUES (?, ?)";
-	var update_query = "UPDATE Language SET language = ?, language_family = ? WHERE id = ?";
+	var update_query = "UPDATE IGNORE Language SET language = ?, language_family = ? WHERE id = ?";
 	var query_args = [language, family];
 	var language_query = null;
 
@@ -759,7 +761,7 @@ app.post('/editCountry', function(req, res, next){
 	console.log(country_id, country, region);
 
 	var insert_query = "INSERT IGNORE INTO Country (country, region) VALUES (?, ?)";
-	var update_query = "UPDATE Country SET country = ?, region = ? WHERE id = ?";
+	var update_query = "UPDATE IGNORE Country SET country = ?, region = ? WHERE id = ?";
 	var query_args = [country, region];
 	var country_query = null;
 
@@ -787,7 +789,7 @@ app.post('/editCategory', function(req, res, next){
 	var category = req.body.category_name;
 
 	var insert_query = "INSERT IGNORE INTO Category (name) VALUES (?)";
-	var update_query = "UPDATE Category SET name = ? WHERE id = ?";
+	var update_query = "UPDATE IGNORE Category SET name = ? WHERE id = ?";
 	var query_args = [category];
 	var category_query = null;
 
@@ -816,7 +818,7 @@ app.post('/editSubCategory', function(req, res, next){
 	var category_id = req.body.category_id;
 
 	var insert_query = "INSERT IGNORE INTO SubCategory (name, category_id) VALUES (?, ?)";
-	var update_query = "UPDATE SubCategory SET name = ?, category_id = ? WHERE id = ?";
+	var update_query = "UPDATE IGNORE SubCategory SET name = ?, category_id = ? WHERE id = ?";
 	var subcategory_query = null;
 	var query_args = [subcategory, category_id];
 
@@ -844,7 +846,7 @@ app.post('/editFormat', function(req, res, next){
 	var format_id = req.body.format_id;
 
 	var insert_query = "INSERT IGNORE INTO Format (format) VALUES (?)";
-	var update_query = "UPDATE Format SET format = ? WHERE id = ?";
+	var update_query = "UPDATE IGNORE Format SET format = ? WHERE id = ?";
 	var format_query = null;
 	var query_args = [format];
 
@@ -887,7 +889,7 @@ app.post('/editBook', function(req, res, next){
 	}
 
 	var insert_query = "INSERT IGNORE INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
-	var update_query = "UPDATE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
+	var update_query = "UPDATE IGNORE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
 	var book_query = null;
 
 	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];

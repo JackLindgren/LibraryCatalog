@@ -52,7 +52,7 @@ CREATE TABLE `Language`
 CREATE TABLE `Author`
 (
  `id`         INT NOT NULL AUTO_INCREMENT ,
- `firstName`  VARCHAR(50) NOT NULL ,
+ `firstName`  VARCHAR(50) ,
  `lastName`	  VARCHAR(50) NOT NULL ,
  `dob`        DATE ,
  `dod`        DATE ,
