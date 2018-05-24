@@ -17,7 +17,9 @@
 		<td>{{this.country}}</td>
 		<td>{{this.gender}}</td>
 		<td><a href="/editAuthor?author_id={{this.id}}">Edit</a></td>
-		<td><a href="/deleteAuthor?author_id={{this.id}}">Delete</a></td>
+		<td><a href="/deleteAuthor?author_id={{this.id}}" onclick="return confirmDeletion('author')">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>
+
+<script src="confirmDelete.js"></script>

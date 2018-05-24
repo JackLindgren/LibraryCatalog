@@ -23,9 +23,10 @@
 		<td>{{this.language}}</td>
 		<td>{{this.language_family}}</td>
 		<td><a href="/languages?language_id={{this.id}}">Edit</a></td>
-		<td><a href="/deleteLanguage?language_id={{this.id}}">Delete</a></td>
+		<td><a href="/deleteLanguage?language_id={{this.id}}" onclick="return confirmDeletion('language')">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>
 
 <script src="validateForm.js"></script>
+<script src="confirmDelete.js"></script>

@@ -20,9 +20,10 @@
 	<tr>
 		<td>{{this.format}}</td>
 		<td><a href="/formats?format_id={{this.id}}">Edit</td>
-		<td><a href="/deleteFormat?format_id={{this.id}}">Delete</a></td>
+		<td><a href="/deleteFormat?format_id={{this.id}}" onclick="return confirmDeletion('format')">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>
 
 <script src="validateForm.js"></script>
+<script src="confirmDelete.js"></script>

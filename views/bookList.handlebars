@@ -33,7 +33,9 @@
 		<td><a href="/listBooks?gender={{this.gender}}">{{this.gender}}</a></td>
 		<td><a href="/listBooks?category_id={{this.category_id}}">{{this.category_name}}</a></td>
 		<td><a href="/editBook?book_id={{this.book_id}}">Edit</a></td>
-		<td><a href="/deleteBook?book_id={{this.book_id}}">Delete</a></td>
+		<td><a href="/deleteBook?book_id={{this.book_id}}" onclick="return confirmDeletion('book')">Delete</a></td>
 	<tr>
 	{{/each}}
 </table>
+
+<script src="confirmDelete.js"></script>
