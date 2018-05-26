@@ -46,28 +46,124 @@ app.get('/updateIndex', function(req, res, next){
 
 /*************************************************
 * Selection functions
+* Most select queries will be handled with one of these functions
+* (Some will be handled in the route, though)
 *************************************************/
-function getSingleBook(book_id, res, mysql, context, complete){
-	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, b.is_anthology, \
-		b.id AS book_id, l.id AS language_id, a.id AS auth_id, c.id AS country_id, \
-		b.category_id, s.name \
-		FROM Book AS b \
-		LEFT JOIN Author AS a ON b.author_id = a.id \
-		LEFT JOIN Country AS c ON a.country_id = c.id \
-		LEFT JOIN Language AS l ON b.language_id = l.id \
-		LEFT JOIN SubCategory AS s ON b.category_id = s.category_id \
-		WHERE b.id = ? LIMIT 1";
+function getBooks(book_id, search_params, res, mysql, context, complete){
+	var book_query = "SELECT \
+		Book.id AS book_id, \
+		Book.title, \
+		Book.year, \
+		Book.is_anthology, \
+		Book.category_id, \
+		Category.name AS categoryName, \
+		SubCategory.name AS subCategoryName, \
+		Language.id AS lang_id, \
+		Language.language, \
+		Author.id AS auth_id, \
+		Author.firstName, \
+		Author.lastName, \
+		Author.gender, \
+		Country.id AS country_id, \
+		Country.country \
+		FROM Book \
+		LEFT JOIN SubCategory ON Book.category_id = SubCategory.id \
+		LEFT JOIN Category ON SubCategory.category_id = Category.id \
+		INNER JOIN Author ON Book.author_id = Author.id \
+		LEFT JOIN Country ON Author.country_id = Country.id \
+		INNER JOIN Language ON Book.language_id = Language.id \
+		WHERE Book.id "
 
-	mysql.pool.query(book_query, [book_id], function(error, results, fields){
+	var query_args = [];
+
+	// filter/search by various parameters
+	if(search_params){
+		if(search_params.author_id){
+			book_query += " AND b.author_id = ?";
+			query_args.push(search_params.author_id);
+		}
+		if(search_params.language_id){
+			book_query += " AND b.language_id = ?";
+			query_args.push(search_params.language_id);
+		}
+		if(search_params.country_id){
+			book_query += " AND a.country_id = ?";
+			query_args.push(search_params.country_id);
+		}
+		if(search_params.gender){
+			book_query += " AND a.gender = ?";
+			query_args.push(search_params.gender);
+		}
+		if(search_params.category_id){
+			book_query += " AND b.category_id = ?";
+			query_args.push(search_params.category_id);
+		}
+		if(search_params.user_id){
+			book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = ?)";
+			query_args.push(search_params.user_id);
+		}
+		if(search_params.author){
+			book_query += " AND (a.firstName LIKE ? OR a.lastName LIKE ? ) ";
+			query_args.push('%' + search_params.author + '%');
+			query_args.push('%' + search_params.author + '%');
+		}
+		if(search_params.title){
+			book_query += " AND b.title LIKE ? ";
+			query_args.push('%' + search_params.title + '%');
+		}
+		if(search_params.subject){
+			book_query += " AND sc.name LIKE ? ";
+			query_args.push('%' + search_params.subject + '%');
+		}
+	}
+
+	// fetch a specific book
+	if(book_id){
+		book_query += " AND Book.id = ?";
+		query_args.push(book_id);
+	}
+
+	book_query += " ORDER BY Author.lastName, Book.title";
+
+	console.log(book_query);
+
+	mysql.pool.query(book_query, query_args, function(error, results, fields){
 		if(error){
 			res.send("Error");
 		}
-		context.book_info = results[0];
+		if(book_id){
+			context.book_info = results[0];
+		} else {
+			context.books = results;
+		}
 		complete()
 	});
-};
+}
 
-function getUserBooks(user_id, res, mysql, context, complete){
+function getUsers(user_id, res, mysql, context, complete){
+	var users_query = "SELECT id, user_name, user_email FROM User";
+	var query_args = [];
+	if(user_id){
+		users_query += " WHERE id = ? LIMIT 1";
+		query_args.push(user_id);
+	}
+	console.log(query_args);
+	mysql.pool.query(users_query, query_args, function(error, results, fields){
+		if(error){
+			res.send("Error");
+		}
+
+		if(user_id){
+			context.user_info = results[0];
+		} else {
+			context.users = results;
+		}
+
+		complete();
+	});
+}
+
+function getUserBooks(user_id, book_id, format_id, res, mysql, context, complete){
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
 		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
 		sc.name AS category_name, \
@@ -83,16 +179,93 @@ function getUserBooks(user_id, res, mysql, context, complete){
 		LEFT JOIN Format AS f ON bu.format_id = f.id \
 		WHERE bu.user_id = ? ";
 
-	mysql.pool.query(book_query, [user_id], function(error, results, fields){
+	var query_args = [user_id];
+
+	if(book_id && format_id){
+		book_query += " AND bu.book_id = ? ";
+		query_args.push(book_id);
+	
+		book_query += " AND bu.format_id = ? ";
+		query_args.push(format_id);
+	}
+
+	mysql.pool.query(book_query, query_args, function(error, results, fields){
 		if(error){
 			res.send("Error");
 		}
-		context.books = results;
+		if(user_id && format_id){
+			context.book_info = results[0];
+		} else {
+			context.books = results;
+		}
 		complete()
 	});
-};
+}
 
-function getAllCountries(country_id, res, mysql, context, complete){
+function getAuthors(author_id, res, mysql, context, complete){
+
+	var author_query = "SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id \
+		FROM Author AS a \
+		LEFT JOIN Country ON a.country_id = Country.id ";
+	
+	var query_args = [];
+	if(author_id){
+		author_query += " WHERE a.id = ? ";
+		query_args.push(author_id);
+	}
+	author_query += " ORDER BY a.lastName";
+
+	mysql.pool.query(author_query, query_args, function(error, results, fields){
+		if(error){
+			res.send("Error");
+		}
+		if(author_id){
+			context.author_info = results[0];
+		} else {
+			context.authors = results;
+		}
+		complete();
+	});
+}
+
+function getSecondaryAuthors(book_id, res, mysql, context, complete){
+	var authors_query = "SELECT Author.firstName, Author.lastName \
+		FROM BookAuthor \
+		INNER JOIN Author ON BookAuthor.author_id = Author.id \
+		WHERE BookAuthor.book_id = ?";
+
+	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
+		if(error){
+			res.send("Error");
+		}
+		context.addl_authors = results;
+		complete();
+	})
+}
+
+function getNonSelectedAuthors(book_id, res, mysql, context, complete){
+	var authors_query = "SELECT id, firstName, lastName FROM Author WHERE id NOT IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName"
+	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
+		if(error){
+			res.send("Error");
+		}
+		context.non_selected_authors = results;
+		complete();
+	});
+}
+
+function getSelectedAuthors(book_id, res, mysql, context, complete){
+	var authors_query = "SELECT id, firstName, lastName FROM Author WHERE id IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName"
+	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
+		if(error){
+			res.send("Error");
+		}
+		context.selected_authors = results;
+		complete();
+	});
+}
+
+function getCountries(country_id, res, mysql, context, complete){
 	var country_query = "SELECT id, country, region FROM Country";
 	var query_args = [];
 	if(country_id){
@@ -115,7 +288,7 @@ function getAllCountries(country_id, res, mysql, context, complete){
 	});	
 }
 
-function getAllLanguages(language_id, res, mysql, context, complete){
+function getLanguages(language_id, res, mysql, context, complete){
 
 	var language_query = "SELECT id, language, language_family FROM Language ";
 	
@@ -140,32 +313,9 @@ function getAllLanguages(language_id, res, mysql, context, complete){
 
 		complete();
 	});
-};
+}
 
-function getAllUsers(user_id, res, mysql, context, complete){
-	var users_query = "SELECT id, user_name, user_email FROM User";
-	var query_args = [];
-	if(user_id){
-		users_query += " WHERE id = ? LIMIT 1";
-		query_args.push(user_id);
-	}
-	console.log(query_args);
-	mysql.pool.query(users_query, query_args, function(error, results, fields){
-		if(error){
-			res.send("Error");
-		}
-
-		if(user_id){
-			context.user_info = results[0];
-		} else {
-			context.users = results;
-		}
-
-		complete();
-	});
-};
-
-function getAllFormats(format_id, res, mysql, context, complete){
+function getFormats(format_id, res, mysql, context, complete){
 	var format_query = "SELECT id, format FROM Format ";
 	var query_args = [];
 	if(format_id){
@@ -183,50 +333,6 @@ function getAllFormats(format_id, res, mysql, context, complete){
 		} else {
 			context.formats = results;
 		}
-		complete();
-	});
-};
-
-function getAllBooks(res, mysql, context, complete){
-	var book_query = "SELECT Book.id, Book.title, Author.lastName FROM Book INNER JOIN Author ON Book.author_id = Author.id ORDER BY Book.title";
-	mysql.pool.query(book_query, function(error, results, fields){
-		if(error){
-			res.send("Error");
-		}
-		context.books = results;
-		complete();
-	});	
-};
-
-function getNonSelectedAuthors(book_id, res, mysql, context, complete){
-	var authors_query = "SELECT id, firstName, lastName FROM Author WHERE id NOT IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName"
-	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
-		if(error){
-			res.send("Error");
-		}
-		context.non_selected_authors = results;
-		complete();
-	});
-};
-
-function getSelectedAuthors(book_id, res, mysql, context, complete){
-	var authors_query = "SELECT id, firstName, lastName FROM Author WHERE id IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName"
-	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
-		if(error){
-			res.send("Error");
-		}
-		context.selected_authors = results;
-		complete();
-	});
-};
-
-function getSingleAuthor(author_id, res, mysql, context, complete){
-	var author_query = "SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id FROM Author AS a LEFT JOIN Country ON a.country_id = Country.id WHERE a.id = ? LIMIT 1";
-	mysql.pool.query(author_query, [author_id], function(error, results, fields){
-		if(error){
-			res.send("Error");
-		}
-		context.author_info = results[0];
 		complete();
 	});
 }
@@ -277,7 +383,7 @@ function getSubCategories(subcategory_id, res, mysql, context, complete){
 		}
 		complete();
 	});
-};
+}
 
 
 /*************************************************
@@ -288,71 +394,20 @@ function getSubCategories(subcategory_id, res, mysql, context, complete){
 // list the current books in the database
 app.get('/listBooks', function(req, res, next){
 	var context = {};
-	console.log("Request received for table data");
-	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
-		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
-		sc.name AS category_name \
-		FROM Book AS b \
-		LEFT JOIN Author AS a ON b.author_id = a.id \
-		LEFT JOIN Country AS c ON a.country_id = c.id \
-		LEFT JOIN Language AS l ON b.language_id = l.id \
-		LEFT JOIN SubCategory AS sc ON b.category_id = sc.id \
-		WHERE b.id ";
+	var callbackCount = 0;
 
-	var query_args = [];
+	var book_id = null;
+	if(req.query.book_id){
+		book_id = req.query.book_id;
+	}
+	getBooks(book_id, req.query, res, mysql, context, complete);
 
-	// take arguments in the query string that limit the search by author, country, or language (using the ID)
-	if(req.query.author_id){
-		book_query += " AND b.author_id = ?";
-		query_args.push(req.query.author_id);
-	}
-	if(req.query.language_id){
-		book_query += " AND b.language_id = ?";
-		query_args.push(req.query.language_id);
-	}
-	if(req.query.country_id){
-		book_query += " AND a.country_id = ?";
-		query_args.push(req.query.country_id);
-	}
-	if(req.query.gender){
-		book_query += " AND a.gender = ?";
-		query_args.push(req.query.gender);
-	}
-	if(req.query.category_id){
-		book_query += " AND b.category_id = ?";
-		query_args.push(req.query.category_id);
-	}
-	if(req.query.user_id){
-		book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = ?)";
-		query_args.push(req.query.user_id);
-	}
-
-	if(req.query.author){
-		book_query += " AND (a.firstName LIKE ? OR a.lastName LIKE ? ) ";
-		query_args.push('%' + req.query.author + '%');
-		query_args.push('%' + req.query.author + '%');
-	}
-
-	if(req.query.title){
-		book_query += " AND b.title LIKE ? ";
-		query_args.push('%' + req.query.title + '%');
-	}
-	if(req.query.subject){
-		book_query += " AND sc.name LIKE ? ";
-		query_args.push('%' + req.query.subject + '%');
-	}
-
-	book_query += " ORDER BY a.lastName, b.year";
-
-	mysql.pool.query(book_query, query_args, function(err, rows, fields){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
+	function complete(){
+		callbackCount++;
+		if(callbackCount >= 1){
+			res.render('bookList', context);
 		}
-		context.books = rows;
-		res.render('bookList', context); 
-	});
+	}
 });
 
 // render form to create or edit a book
@@ -363,8 +418,8 @@ app.get('/editBook', function(req, res, next){
 
 	var callbackCount = 0;
 
-	getSingleBook(book_id, res, mysql, context, complete);
-	getAllLanguages(null, res, mysql, context, complete);
+	getBooks(book_id, null, res, mysql, context, complete);
+	getLanguages(null, res, mysql, context, complete);
 	getSubCategories(null, res, mysql, context, complete);
 	getSelectedAuthors(book_id, res, mysql, context, complete);
 	getNonSelectedAuthors(book_id, res, mysql, context, complete);
@@ -387,7 +442,7 @@ app.get('/listUserBooks', function(req, res, next){
 
 	var callbackCount = 0;
 
-	getUserBooks(user_id, res, mysql, context, complete);
+	getUserBooks(user_id, null, null, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -401,37 +456,22 @@ app.get('/listUserBooks', function(req, res, next){
 // meaning that we could edit the book's rating or it's date read
 app.get('/editUserBook', function(req, res, next){
 	console.log("In edit User Book");
+	
 	var user_id = req.query.user_id;
 	var book_id = req.query.book_id;
 	var format_id = req.query.format_id;
+	
 	var context = {};
-	mysql.pool.query("SELECT Book.title, Language.language, Book.year, \
-		bu.rating, bu.date_added, bu.date_read, Format.format, \
-		Author.firstName, Author.lastName, Country.country, \
-		bu.book_id, bu.user_id, bu.format_id, \
-		User.user_name \
-		FROM Book \
-		INNER JOIN BookUser AS bu ON Book.id = bu.book_id \
-		INNER JOIN Format ON Format.id = bu.format_id \
-		INNER JOIN Author ON Book.author_id = Author.id \
-		INNER JOIN Language ON Book.language_id = Language.id \
-		INNER JOIN Country ON Author.country_id = Country.id \
-		INNER JOIN User ON bu.user_id = User.id \
-		WHERE bu.user_id = ? \
-		AND bu.book_id = ? \
-		AND bu.format_id = ? ",
-		[user_id, book_id, format_id],
-		function(err, rows, fields){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else {
-			context.book_info = rows[0];
-			console.log(context);
+	var callbackCount = 0;
+
+	getUserBooks(user_id, book_id, format_id, res, mysql, context, complete);
+
+	function complete(){
+		callbackCount++;
+		if(callbackCount >= 1){
 			res.render('editUserBook', context);
 		}
-	});
+	}
 });
 
 app.post('/editUserBook', function(req, res, next){
@@ -460,7 +500,7 @@ app.post('/editUserBook', function(req, res, next){
 			res.redirect('/listUserBooks?user_id=' + user_id);
 		}
 	})
-})
+});
 
 // render form to manage user-book relationship
 app.get('/bookUser', function(req, res, next){
@@ -468,9 +508,9 @@ app.get('/bookUser', function(req, res, next){
 
 	var callbackCount = 0;
 	
-	getAllBooks(res, mysql, context, complete);
-	getAllUsers(null, res, mysql, context, complete);
-	getAllFormats(null, res, mysql, context, complete);
+	getBooks(null, null, res, mysql, context, complete);
+	getUsers(null, res, mysql, context, complete);
+	getFormats(null, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -482,20 +522,16 @@ app.get('/bookUser', function(req, res, next){
 
 // Render a list of authors
 app.get('/listAuthors', function(req, res, render){
-	mysql.pool.query("SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country \
-		FROM Author AS a \
-		LEFT JOIN Country ON a.country_id = Country.id \
-		ORDER BY a.lastName", 
-	function(err, rows, fields){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
+	var context = {};
+	var callbackCount = 0;
+	getAuthors(null, res, mysql, context, complete);
+
+	function complete(){
+		callbackCount++;
+		if(callbackCount >= 1){
+			res.render('authorList', context);
 		}
-		var context = {};
-		context.authors = rows;
-		res.render('authorList', context); 
-	});
+	}
 });
 
 // render form to create or edit an author
@@ -507,8 +543,8 @@ app.get('/editAuthor', function(req, res, next){
 
 	var callbackCount = 0;
 
-	getAllCountries(null, res, mysql, context, complete);
-	getSingleAuthor(author_id, res, mysql, context, complete);
+	getCountries(null, res, mysql, context, complete);
+	getAuthors(author_id, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -525,7 +561,7 @@ app.get('/listUsers', function(req, res, render){
 	var context = {};
 	var callbackCount = 0;
 
-	getAllUsers(null, res, mysql, context, complete);
+	getUsers(null, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -542,7 +578,7 @@ app.get('/editUser', function(req, res, next){
 	var context = {};
 	var callbackCount = 0;
 
-	getAllUsers(user_id, res, mysql, context, complete);
+	getUsers(user_id, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -554,8 +590,6 @@ app.get('/editUser', function(req, res, next){
 
 // API request to confirm that a user's email address is not already taken
 app.get('/getUser', function(req, res, next){
-	console.log("Getting user");
-	console.log("*******************************");
 	var user_email = req.query.user_email;
 	mysql.pool.query("SELECT id, user_email FROM User WHERE user_email = ?", user_email, function(err, rows, fields){
 		if(err){
@@ -576,9 +610,10 @@ app.get('/countries', function(req, res, render){
 	var callbackCount = 0;
 	var country_id = req.query.country_id;
 
-	getAllCountries(null, res, mysql, context, complete);
+	getCountries(null, res, mysql, context, complete);
+	
 	if(country_id){
-		getAllCountries(country_id, res, mysql, context, complete);
+		getCountries(country_id, res, mysql, context, complete);
 	}
 
 	function complete(){
@@ -589,7 +624,6 @@ app.get('/countries', function(req, res, render){
 			res.render('countries', context);
 		}
 	}
-
 });
 
 // list languages and render the language creation/edit form
@@ -598,10 +632,10 @@ app.get('/languages', function(req, res, render){
 	var callbackCount = 0;
 	var language_id = req.query.language_id;
 
-	getAllLanguages(null, res, mysql, context, complete);
+	getLanguages(null, res, mysql, context, complete);
 	
 	if(language_id){
-		getAllLanguages(language_id, res, mysql, context, complete);
+		getLanguages(language_id, res, mysql, context, complete);
 	}
 
 	function complete(){
@@ -612,7 +646,6 @@ app.get('/languages', function(req, res, render){
 			res.render('languages', context);
 		}
 	}
-
 });
 
 // list formats and render the format creation/edit form
@@ -621,9 +654,9 @@ app.get('/formats', function(req, res, render){
 	var callbackCount = 0;
 	var format_id = req.query.format_id;
 
-	getAllFormats(null, res, mysql, context, complete);
+	getFormats(null, res, mysql, context, complete);
 	if(format_id){
-		getAllFormats(format_id, res, mysql, context, complete);
+		getFormats(format_id, res, mysql, context, complete);
 	}
 
 	function complete(){
@@ -634,7 +667,6 @@ app.get('/formats', function(req, res, render){
 			res.render('formats', context);
 		}
 	}
-
 });
 
 // list categories and render the category and subcategory creation/edit forms
@@ -666,7 +698,6 @@ app.get('/categories', function(req, res, render){
 			res.render('categories', context);
 		}
 	}
-
 });
 
 // render some fun stats
@@ -716,39 +747,17 @@ app.get('/stats', function(req, res, render){
 app.get('/bookDetails', function(req, res, next){
 	var context = {};
 	var book_id = req.query.book_id;
-	mysql.pool.query("SELECT Book.title, Book.year, Book.is_anthology, \
-		Category.name AS categoryName, SubCategory.name AS subCategoryName, \
-		Language.language, Author.firstName, Author.lastName, Country.country \
-		FROM Book \
-		LEFT JOIN SubCategory ON Book.category_id = SubCategory.id \
-		LEFT JOIN Category ON SubCategory.category_id = Category.id \
-		INNER JOIN Author ON Book.author_id = Author.id \
-		LEFT JOIN Country ON Author.country_id = Country.id \
-		INNER JOIN Language ON Book.language_id = Language.id \
-		WHERE Book.id = ?", [book_id], function(err, rows, fields){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else {
-			context.book_info = rows[0];
-			mysql.pool.query("SELECT Author.firstName, Author.lastName \
-				FROM BookAuthor \
-				INNER JOIN Author ON BookAuthor.author_id = Author.id \
-				WHERE BookAuthor.book_id = ?", [book_id], function(err, rows, fields){
-				if(err){
-					res.send({response: "Database error"});
-					next(err);
-					return;
-				} else {
-					context.addl_authors = rows;
+	var callbackCount = 0;
 
-					console.log(context);
-					res.render('bookDetails', context);
-				}
-			})
+	getBooks(book_id, null, res, mysql, context, complete);
+	getSecondaryAuthors(book_id, res, mysql, context, complete);
+
+	function complete(){
+		callbackCount++;
+		if(callbackCount >= 2){
+			res.render('bookDetails', context);
 		}
-	});
+	}
 });
 
 /*************************************************
@@ -1108,7 +1117,7 @@ app.post('/bookUser', function(req, res, next){
 * - delete book
 * - delete author
 *************************************************/
-// removes book from a user's shelf
+// removes book from a user's shelf by destroying the BookUser relationship
 app.get('/removeBook', function(req, res, next){
 	
 	var book_id = req.query.book_id;
