@@ -78,41 +78,43 @@ function getBooks(book_id, search_params, res, mysql, context, complete){
 
 	// filter/search by various parameters
 	if(search_params){
+		console.log(search_params);
+
 		if(search_params.author_id){
-			book_query += " AND b.author_id = ?";
+			book_query += " AND Book.author_id = ?";
 			query_args.push(search_params.author_id);
 		}
 		if(search_params.language_id){
-			book_query += " AND b.language_id = ?";
+			book_query += " AND Book.language_id = ?";
 			query_args.push(search_params.language_id);
 		}
 		if(search_params.country_id){
-			book_query += " AND a.country_id = ?";
+			book_query += " AND Author.country_id = ?";
 			query_args.push(search_params.country_id);
 		}
 		if(search_params.gender){
-			book_query += " AND a.gender = ?";
+			book_query += " AND Author.gender = ?";
 			query_args.push(search_params.gender);
 		}
 		if(search_params.category_id){
-			book_query += " AND b.category_id = ?";
+			book_query += " AND Book.category_id = ?";
 			query_args.push(search_params.category_id);
 		}
 		if(search_params.user_id){
-			book_query += " AND b.id IN (SELECT book_id FROM BookUser WHERE user_id = ?)";
+			book_query += " AND Book.id IN (SELECT book_id FROM BookUser WHERE user_id = ?)";
 			query_args.push(search_params.user_id);
 		}
 		if(search_params.author){
-			book_query += " AND (a.firstName LIKE ? OR a.lastName LIKE ? ) ";
+			book_query += " AND (Author.firstName LIKE ? OR Author.lastName LIKE ? ) ";
 			query_args.push('%' + search_params.author + '%');
 			query_args.push('%' + search_params.author + '%');
 		}
 		if(search_params.title){
-			book_query += " AND b.title LIKE ? ";
+			book_query += " AND Book.title LIKE ? ";
 			query_args.push('%' + search_params.title + '%');
 		}
 		if(search_params.subject){
-			book_query += " AND sc.name LIKE ? ";
+			book_query += " AND SubCategory.name LIKE ? ";
 			query_args.push('%' + search_params.subject + '%');
 		}
 	}
@@ -124,8 +126,6 @@ function getBooks(book_id, search_params, res, mysql, context, complete){
 	}
 
 	book_query += " ORDER BY Author.lastName, Book.title";
-
-	console.log(book_query);
 
 	mysql.pool.query(book_query, query_args, function(error, results, fields){
 		if(error){
@@ -147,7 +147,6 @@ function getUsers(user_id, res, mysql, context, complete){
 		users_query += " WHERE id = ? LIMIT 1";
 		query_args.push(user_id);
 	}
-	console.log(query_args);
 	mysql.pool.query(users_query, query_args, function(error, results, fields){
 		if(error){
 			res.send("Error");
@@ -396,10 +395,14 @@ app.get('/listBooks', function(req, res, next){
 	var context = {};
 	var callbackCount = 0;
 
+	console.log("********************");
+	console.log(req.query);
+
 	var book_id = null;
 	if(req.query.book_id){
 		book_id = req.query.book_id;
 	}
+
 	getBooks(book_id, req.query, res, mysql, context, complete);
 
 	function complete(){
@@ -988,14 +991,18 @@ app.post('/editFormat', function(req, res, next){
 
 // handle request to create or edit a book
 app.post('/editBook', function(req, res, next){
+	console.log(req.body);
+
 	var title = req.body.book_title;
 	var author_id = req.body.author;
 	var language = req.body.book_language;
 	var year = req.body.book_year;
-	var lang_id = parseInt(req.body.book_language);
+	var lang_id = req.body.book_language;
 	var category_id = req.body.book_category
 	var addl_authors = req.body.addl_authors;
 	var book_id = req.body.book_id;
+
+	console.log(lang_id);
 
 	if(!category_id){
 		category_id = null;
