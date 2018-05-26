@@ -268,7 +268,7 @@ function getCountries(country_id, res, mysql, context, complete){
 	var country_query = "SELECT id, country, region FROM Country";
 	var query_args = [];
 	if(country_id){
-		country_query += " WHERE id = ? LIMIT 1";
+		country_query += " WHERE id = ? ";
 		query_args.push(country_id);
 	}
 
@@ -446,10 +446,11 @@ app.get('/listUserBooks', function(req, res, next){
 	var callbackCount = 0;
 
 	getUserBooks(user_id, null, null, res, mysql, context, complete);
+	getUsers(user_id, res, mysql, context, complete)
 
 	function complete(){
 		callbackCount++;
-		if(callbackCount >= 1){
+		if(callbackCount >= 2){
 			res.render('userBooks', context);
 		}
 	}
