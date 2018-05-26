@@ -116,7 +116,6 @@ function getAllCountries(country_id, res, mysql, context, complete){
 }
 
 function getAllLanguages(language_id, res, mysql, context, complete){
-	console.log("inside get language function");
 
 	var language_query = "SELECT id, language, language_family FROM Language ";
 	
@@ -129,8 +128,6 @@ function getAllLanguages(language_id, res, mysql, context, complete){
 
 	language_query += " ORDER BY language";
 
-	console.log(language_query);
-
 	mysql.pool.query(language_query, query_args, function(error, results, fields){
 		if(error){
 			res.send("Error");
@@ -140,10 +137,6 @@ function getAllLanguages(language_id, res, mysql, context, complete){
 		} else {
 			context.languages = results;
 		}
-
-		console.log("Done getting languages");
-
-		console.log(context.languages);
 
 		complete();
 	});
@@ -172,13 +165,24 @@ function getAllUsers(user_id, res, mysql, context, complete){
 	});
 };
 
-function getAllFormats(res, mysql, context, complete){
-	var format_query = "SELECT id, format FROM Format ORDER BY format";
-	mysql.pool.query(format_query, function(error, results, fields){
+function getAllFormats(format_id, res, mysql, context, complete){
+	var format_query = "SELECT id, format FROM Format ";
+	var query_args = [];
+	if(format_id){
+		format_query += " WHERE id = ? ";
+		query_args.push(format_id);
+	}
+	format_query += " ORDER BY format";
+
+	mysql.pool.query(format_query, query_args, function(error, results, fields){
 		if(error){
 			res.send("Error");
 		}
-		context.formats = results;
+		if(format_id){
+			context.format_info = results[0];
+		} else {
+			context.formats = results;
+		}
 		complete();
 	});
 };
@@ -227,16 +231,54 @@ function getSingleAuthor(author_id, res, mysql, context, complete){
 	});
 }
 
-function getSubCategories(res, mysql, context, complete){
-	var subcategory_query = "SELECT id, name FROM SubCategory ORDER BY name";
-	mysql.pool.query(subcategory_query, function(error, results, fields){
+function getCategories(category_id, res, mysql, context, complete){
+	var category_query = "SELECT id, name FROM Category ";
+	var query_args = [];
+	if(category_id){
+		category_query += " WHERE id = ? ";
+		query_args.push(category_id);
+	}
+	category_query += " ORDER BY name";
+	mysql.pool.query(category_query, query_args, function(error, results, fields){
 		if(error){
 			res.send("Error");
 		}
-		context.categories = results;
+		if(category_id){
+			context.category_info = results[0];
+		} else {
+			context.categories = results;
+		}
+		complete();
+	});
+}
+
+function getSubCategories(subcategory_id, res, mysql, context, complete){
+	var subcategory_query = "SELECT SubCategory.id AS subcategory_id, \
+		SubCategory.name AS subcategory, \
+		Category.id AS category_id, \
+		Category.name AS category \
+		FROM SubCategory \
+		INNER JOIN Category ON SubCategory.category_id = Category.id ";
+	var query_args = [];
+	if(subcategory_id){
+		subcategory_query += " WHERE SubCategory.id = ? ";
+		query_args.push(subcategory_id);
+	}
+	subcategory_query += " ORDER BY category, subcategory ";
+
+	mysql.pool.query(subcategory_query, query_args, function(error, results, fields){
+		if(error){
+			res.send("Error");
+		}
+		if(subcategory_id){
+			context.subcategory_info = results[0];
+		} else {
+			context.subcategories = results;
+		}
 		complete();
 	});
 };
+
 
 /*************************************************
 * List functions:
@@ -323,7 +365,7 @@ app.get('/editBook', function(req, res, next){
 
 	getSingleBook(book_id, res, mysql, context, complete);
 	getAllLanguages(null, res, mysql, context, complete);
-	getSubCategories(res, mysql, context, complete);
+	getSubCategories(null, res, mysql, context, complete);
 	getSelectedAuthors(book_id, res, mysql, context, complete);
 	getNonSelectedAuthors(book_id, res, mysql, context, complete);
 
@@ -428,7 +470,7 @@ app.get('/bookUser', function(req, res, next){
 	
 	getAllBooks(res, mysql, context, complete);
 	getAllUsers(null, res, mysql, context, complete);
-	getAllFormats(res, mysql, context, complete);
+	getAllFormats(null, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -576,28 +618,23 @@ app.get('/languages', function(req, res, render){
 // list formats and render the format creation/edit form
 app.get('/formats', function(req, res, render){
 	var context = {};
+	var callbackCount = 0;
 	var format_id = req.query.format_id;
-	mysql.pool.query("SELECT id, format FROM Format ORDER BY format", function(err, rows, fields){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else{
-			context.formats = rows;
-			if(format_id){
-				mysql.pool.query("SELECT id, format FROM Format WHERE id = ?", [format_id], function(err, rows, fields){
-					if(err){
 
-					} else {
-						context.format_info = rows[0];
-						res.render('formats', context);
-					}
-				})
-			} else {
-				res.render('formats', context);
-			}
+	getAllFormats(null, res, mysql, context, complete);
+	if(format_id){
+		getAllFormats(format_id, res, mysql, context, complete);
+	}
+
+	function complete(){
+		callbackCount++
+		if(format_id && callbackCount >= 2){
+			res.render('formats', context);
+		} else if(!format_id && callbackCount >= 1){
+			res.render('formats', context);
 		}
-	});
+	}
+
 });
 
 // list categories and render the category and subcategory creation/edit forms
@@ -605,53 +642,31 @@ app.get('/categories', function(req, res, render){
 	var context = {};
 	var category_id = req.query.category_id;
 	var subcategory_id = req.query.subcategory_id;
-	console.log(category_id);
-	mysql.pool.query("SELECT SubCategory.id AS subcategory_id, SubCategory.name AS subcategory, Category.name AS category, Category.id AS category_id FROM SubCategory RIGHT JOIN Category ON SubCategory.category_id = Category.id", function(err, rows, fields){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
-		} else{
-			context.subcategories = rows;
-			mysql.pool.query("SELECT id, name FROM Category", function(err, rows, fields){
-				if(err){
-					res.send({response: "Database error"});
-					next(err);
-					return;
-				} else {
-					context.categories = rows;
-					if(category_id){
-						mysql.pool.query("SELECT id, name FROM Category WHERE id = ?", [category_id], function(err, rows, fields){
-							if(err){
-								res.send({response: "Database error"});
-								next(err);
-								return;
-							} else {
-								context.category_info = rows[0];
-								console.log(context.category_info);
-								res.render('categories', context);
-							}
-						})
-					} else if(subcategory_id){
-						mysql.pool.query("SELECT SubCategory.id AS subcategory_id, Category.id AS category_id, SubCategory.name AS subcategory, Category.name AS category \
-							FROM SubCategory INNER JOIN Category ON SubCategory.category_id = Category.id WHERE SubCategory.id = ?", 
-							[subcategory_id], function(err, rows, fields){
-							if(err){
-								res.send({response: "Database error"});
-								next(err);
-								return;
-							} else {
-								context.subcategory_info = rows[0];
-								res.render('categories', context);
-							}
-						});
-					} else {
-						res.render('categories', context);
-					}
-				}
-			});
+	var callbackCount = 0;
+
+	// get all categories and subcategories
+	getSubCategories(null, res, mysql, context, complete);
+	getCategories(null, res, mysql, context, complete);
+
+	// get info about a specific category or subcategory
+	if(category_id){
+		getCategories(category_id, res, mysql, context, complete);
+	}
+	if(subcategory_id){
+		getSubCategories(subcategory_id, res, mysql, context, complete);
+	}
+
+	function complete(){
+		callbackCount++;
+		if(category_id && !subcategory_id && callbackCount >= 3){
+			res.render('categories', context);
+		} else if (subcategory_id && !category_id && callbackCount >= 3){
+			res.render('categories', context);
+		} else if (!category_id && !subcategory_id && callbackCount >= 2){
+			res.render('categories', context);
 		}
-	});
+	}
+
 });
 
 // render some fun stats

@@ -33,6 +33,22 @@
 	</fieldset>
 </form>
 
+<h2>Categories</h2>
+<table>
+	<tr>
+		<th>Category</th>
+	</tr>
+
+	{{#each categories}}
+	<tr>
+		<td>{{this.name}}</td>
+		<td><a href="/deleteCategory?category_id={{this.id}}" onclick="return confirmDeletion('category')">Delete Category</a>
+		<td><a href="/categories?category_id={{this.id}}">Edit Category</a>
+	<tr>
+	{{/each}}
+</table>
+
+<h2>SubCategories</h2>
 <table>
 	<tr>
 		<th>SubCategory</th>
@@ -44,9 +60,7 @@
 		<td>{{this.subcategory}}</td>
 		<td>{{this.category}}</td>
 		<td><a href="/deleteSubCategory?subcategory_id={{this.subcategory_id}}" onclick="return confirmDeletion('subcategory')">Delete SubCategory</a></td>
-		<td><a href="/deleteCategory?category_id={{this.category_id}}" onclick="return confirmDeletion('category')">Delete Category</a>
 		<td><a href="/categories?subcategory_id={{this.subcategory_id}}">Edit Subcategory</a>
-		<td><a href="/categories?category_id={{this.category_id}}">Edit Category</a>
 	<tr>
 	{{/each}}
 </table>

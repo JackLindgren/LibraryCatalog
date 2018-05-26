@@ -36,8 +36,8 @@
 		Year:     	<input type="text" name="book_year" id="book_year" value="{{book_info.year}}"><br>
 		Category:	<select name="book_category">
 						<option value=""></option>
-						{{#each categories}}
-						<option value="{{this.id}}" id="category_{{this.id}}">{{this.name}}</option>
+						{{#each subcategories}}
+						<option value="{{this.subcategory_id}}" id="category_{{this.subcategory_id}}">{{this.subcategory}}</option>
 						{{/each}}
 					</select><br>
 		{{#if book_info.is_anthology}}
