@@ -10,14 +10,14 @@
 	</fieldset>
 </form>
 
-<table>
+<table id="book_table">
 	<tr>
-		<th>Title</th>
-		<th>Author</th>
-		<th>Language</th>
-		<th>Country</th>
-		<th>Year</th>
-		<th>Gender</th>
+		<th onclick="sortTable(0, 'book_table')">Title</th>
+		<th onclick="sortTable(1, 'book_table')">Author</th>
+		<th onclick="sortTable(2, 'book_table')">Language</th>
+		<th onclick="sortTable(3, 'book_table')">Country</th>
+		<th onclick="sortTable(4, 'book_table')">Year</th>
+		<th onclick="sortTable(5, 'book_table')">Gender</th>
 		<th>Category</th>
 		<th></th>
 	</tr>
@@ -39,3 +39,4 @@
 </table>
 
 <script src="confirmDelete.js"></script>
+<script src="sortTable.js"></script>
