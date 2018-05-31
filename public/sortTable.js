@@ -31,7 +31,6 @@ function sortTable(n, table_id) {
 
             // problem here - why is rows[i+1] null?
 			y = rows[i + 1].getElementsByTagName("TD")[n];
-            // y = rows[i + 2].getElementsByTagName("TD")[n];
 
 			/*check if the two rows should switch place,
 			based on the direction, asc or desc:*/
@@ -50,6 +49,7 @@ function sortTable(n, table_id) {
 			}
 		}
 		if (shouldSwitch) {
+			console.log("Switching");
 
 			/*If a switch has been marked, make the switch
 			and mark that a switch has been done:*/
