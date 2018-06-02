@@ -1,5 +1,5 @@
 <h1>Users</h1>
-<table>
+<table id='user_table'>
 	<tr>
 		<th>User Name</th>
 		<th>User Email</th>
@@ -12,7 +12,7 @@
 		<td><a href="/editUser?user_id={{this.id}}">edit</a></td>
 		<td><a href="/listUserBooks?user_id={{this.id}}">list books</a></td>
 		<td><a href="/deleteUser?user_id={{this.id}}" onclick="return confirmDeletion('user')">Delete</a></td>
-	<tr>
+	</tr>
 	{{/each}}
 </table>
 

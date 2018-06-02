@@ -12,7 +12,7 @@
 	</fieldset>
 </form>
 
-<table>
+<table id='language_table'>
 	<tr>
 		<th>Language</th>
 		<th>Family</th>
@@ -24,7 +24,7 @@
 		<td>{{this.language_family}}</td>
 		<td><a href="/languages?language_id={{this.id}}">Edit</a></td>
 		<td><a href="/deleteLanguage?language_id={{this.id}}" onclick="return confirmDeletion('language')">Delete</a></td>
-	<tr>
+	</tr>
 	{{/each}}
 </table>
 
