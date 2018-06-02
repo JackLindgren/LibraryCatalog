@@ -201,6 +201,18 @@ function getUserBooks(user_id, book_id, format_id, res, mysql, context, complete
 	});
 }
 
+function getUserReadBooksCount(user_id, res, mysql, context, complete){
+	var query = "SELECT COUNT(DISTINCT(book_id)) AS 'count' FROM BookUser WHERE date_read IS NOT NULL AND user_id = ?";
+	mysql.pool.query(query, [user_id], function(error, results, fields){
+		if(error){
+			res.send("Error");
+		} else {
+			context.read_book_count = results[0];
+		}
+		complete();
+	});
+}
+
 function getAuthors(author_id, res, mysql, context, complete){
 
 	var author_query = "SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id \
@@ -446,11 +458,12 @@ app.get('/listUserBooks', function(req, res, next){
 	var callbackCount = 0;
 
 	getUserBooks(user_id, null, null, res, mysql, context, complete);
-	getUsers(user_id, res, mysql, context, complete)
+	getUserReadBooksCount(user_id, res, mysql, context, complete);
+	getUsers(user_id, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
-		if(callbackCount >= 2){
+		if(callbackCount >= 3){
 			res.render('userBooks', context);
 		}
 	}
