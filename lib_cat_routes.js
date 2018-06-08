@@ -32,6 +32,10 @@ app.get('/', function(req, res, next){
 /*************************************************
 * Routes for index pages
 *************************************************/
+app.get('/index', function(req, res, next){
+	res.render('index');
+});
+
 app.get('/showIndex', function(req, res, next){
 	res.render('showIndex');
 });

@@ -1,0 +1,47 @@
+<h1>Insert Pages</h1>
+
+<a href="/editBook">Add New Book</a> (including the Author:Book many:many relationshp - any secondary authors selected will create a many:many Book:Author record)<br>
+<a href="/editAuthor">Add New Author</a><br>
+<a href="/editUser">Add New User</a><br>
+<a href="/bookUser">Add a Book:User records (many:many)</a><br>
+<a href="/languages">Add a new Language</a><br>
+<a href="/countries">Add a new Country</a><br>
+<a href="/categories">Add a new Category or Subcategory</a><br>
+<a href="/formats">Add a new Format</a><br>
+
+<h1>Show Pages</h1>
+
+<a href="/listBooks">Show Books</a><br>
+<a href="/listAuthors">Show Authors</a><br>
+<a href="/listUsers">Show Users</a><br>
+<a href="/languages">Show Languages</a><br>
+<a href="/countries">Show Countries</a><br>
+<a href="/categories">Show Categories</a><br>
+<a href="/formats">Show Formats</a><br>
+<br>
+<a href="/bookDetails?book_id=1436">Show Seconary Authors (many:many)</a> (in the "Secondary Authors" field)<br>
+<a href="/listUserBooks?user_id=1">Show A User's Books (many:many)</a><br>
+
+<h1>Update Pages</h1>
+
+<a href="/editBook?book_id=1465">Update a book</a> or use the "edit" link for any <a href="/listBooks">listed book</a> (this also includes Author:Book many:many relationships)<br>
+<a href="/editAuthor?author_id=761">Update an author</a> or use the "edit" link for any <a href="/listAuthors">listed author</a><br>
+<a href="/editUser?user_id=1">Update a user</a> or use the "edit" link for any <a href="/listUsers">listed user</a><br>
+<a href="/languages?language_id=78">Update a language</a> or use the "edit" link for any <a href="/languages">listed language</a><br>
+<a href="/countries?country_id=1">Update a Country</a> or use the "edit" link for any <a href="/countries">listed country</a><br>
+<a href="/categories?subcategory_id=15">Update a subcategory</a> or use the "edit" link for any <a href="/categories">listed subcategory</a><br>
+<a href="/categories?category_id=5">Update a category</a> or use the "edit" link for any <a href="/categories">listed category</a><br>
+<a href="/formats?format_id=4">Update a format</a> or use the "edit" link for any <a href="/formats">listed format</a><br>
+<a href="/editUserBook?user_id=1&book_id=934&format_id=1">Update information about a book on a user's shelf</a> or user the "edit" link for any book on a <a href="/listUserBooks?user_id=1">user's shelf</a><br>
+
+<h1>Delete Pages</h1>
+<a href="/listBooks">Delete Books</a> ("delete" link)<br>
+<a href="/listAuthors">Delete Authors</a> ("delete" link)<br>
+<a href="/listUsers">Delete Users</a> ("delete" link)<br>
+<a href="/languages">Delete Languages</a> ("delete" link)<br>
+<a href="/countries">Delete Countries</a> ("delete" link)<br>
+<a href="/categories">Delete Categories or Subcategories</a> ("delete" link)<br>
+<a href="/formats">Delete Formats</a> ("delete" link)<br>
+<br>
+<a href="/editBook?book_id=1436">Delete Author:Book (many:many) Association</a> select the blank author - this will clear out all secondary authors<br>
+<a href="/listUserBooks?user_id=1">Delete User:Book (many:many) Association</a> "delete" link will destroy the association record, removing the book from the user's shelf<br>
