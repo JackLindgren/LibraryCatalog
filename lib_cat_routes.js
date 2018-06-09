@@ -217,7 +217,7 @@ function getUserReadBooksCount(user_id, res, mysql, context, complete){
 	});
 }
 
-function getAuthors(author_id, res, mysql, context, complete){
+function getAuthors(author_id, country_id, res, mysql, context, complete){
 
 	var author_query = "SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id \
 		FROM Author AS a \
@@ -227,6 +227,10 @@ function getAuthors(author_id, res, mysql, context, complete){
 	if(author_id){
 		author_query += " WHERE a.id = ? ";
 		query_args.push(author_id);
+	}
+	if(country_id){
+		author_query += " WHERE a.country_id = ? ";
+		query_args.push(country_id);
 	}
 	author_query += " ORDER BY a.lastName";
 
@@ -545,7 +549,8 @@ app.get('/bookUser', function(req, res, next){
 app.get('/listAuthors', function(req, res, render){
 	var context = {};
 	var callbackCount = 0;
-	getAuthors(null, res, mysql, context, complete);
+	var country_id = req.query.country_id;
+	getAuthors(null, country_id, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
@@ -565,7 +570,7 @@ app.get('/editAuthor', function(req, res, next){
 	var callbackCount = 0;
 
 	getCountries(null, res, mysql, context, complete);
-	getAuthors(author_id, res, mysql, context, complete);
+	getAuthors(author_id, null, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;

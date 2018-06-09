@@ -14,7 +14,7 @@
 		<td><a href="/listBooks?author_id={{this.id}}">{{this.lastName}}</a></td>
 		<td>{{this.firstName}}</td>
 		<td>{{this.dob}}</td>
-		<td>{{this.country}}</td>
+		<td><a href="/listAuthors?country_id={{this.country_id}}">{{this.country}}</a></td>
 		<td>{{this.gender}}</td>
 		<td><a href="/editAuthor?author_id={{this.id}}">Edit</a></td>
 		<td><a href="/deleteAuthor?author_id={{this.id}}" onclick="return confirmDeletion('author')">Delete</a></td>
