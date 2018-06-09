@@ -1,3 +1,10 @@
+/*******************************************
+* charts.js
+* Jack Lindgren, 2018
+* Use Google charts API to draw charts on the stats pages
+*******************************************/
+
+
 google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(drawCharts);
 
