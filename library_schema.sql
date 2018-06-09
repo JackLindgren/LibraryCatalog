@@ -1,13 +1,13 @@
-DROP TABLE `BookUser`;
-DROP TABLE `Book`;
-DROP TABLE `Author`;
-DROP TABLE `User`;
-DROP TABLE `Format`;
-DROP TABLE `Country`;
-DROP TABLE `Language`;
-DROP TABLE `BookAuthor`;
-DROP TABLE `SubCategory`;
-DROP TABLE `Category`;
+DROP TABLE IF EXISTS `BookUser`;
+DROP TABLE IF EXISTS `Book`;
+DROP TABLE IF EXISTS `Author`;
+DROP TABLE IF EXISTS `User`;
+DROP TABLE IF EXISTS `Format`;
+DROP TABLE IF EXISTS `Country`;
+DROP TABLE IF EXISTS `Language`;
+DROP TABLE IF EXISTS `BookAuthor`;
+DROP TABLE IF EXISTS `SubCategory`;
+DROP TABLE IF EXISTS `Category`;
 
 -- `User`
 CREATE TABLE `User`
