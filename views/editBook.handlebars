@@ -12,16 +12,16 @@
 
 		Title:		<input type="text" name="book_title" id="book_title" value="{{book_info.title}}"><br>
 		Author:		<select name="author" id="book_author">
-						{{#each selected_authors}}
-						<option value="{{this.id}}" id="author_{{this.id}}">{{this.lastName}}, {{this.firstName}}</option>
-						{{/each}}
+						{{#if book_info.auth_id}}
+						<option value="{{book_info.auth_id}}" id="author_{{book_info.auth_id}}">{{book_info.lastName}}, {{book_info.firstName}}</option>
+						{{/if}}
 						{{#each non_selected_authors}}
 						<option value="{{this.id}}" id="author_{{this.id}}">{{this.lastName}}, {{this.firstName}}</option>
 						{{/each}}
 					</select><br>
 		Secondary Authors: <select multiple name="addl_authors">
 						<option value=""></option>
-						{{#each selected_authors}}
+						{{#each addl_authors}}
 						<option value="{{this.id}}" id="addl_author_{{this.id}}" selected="selected">{{this.lastName}}, {{this.firstName}}</option>
 						{{/each}}
 						{{#each non_selected_authors}}

@@ -280,7 +280,8 @@ function getSecondaryAuthors(book_id, res, mysql, context, complete){
 	var authors_query = "SELECT Author.id, Author.firstName, Author.lastName \
 		FROM BookAuthor \
 		INNER JOIN Author ON BookAuthor.author_id = Author.id \
-		WHERE BookAuthor.book_id = ?";
+		WHERE BookAuthor.book_id = ? \
+		ORDER BY Author.lastName, Author.firstName";
 
 	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
 		if(error){
@@ -308,26 +309,6 @@ function getNonSelectedAuthors(book_id, res, mysql, context, complete){
 			res.send("Error");
 		}
 		context.non_selected_authors = results;
-		complete();
-	});
-}
-
-/*************************************************
-* 
-*************************************************/
-function getSelectedAuthors(book_id, res, mysql, context, complete){
-	var authors_query = "SELECT id, firstName, lastName \
-		FROM Author \
-		WHERE id IN (\
-			SELECT author_id \
-			FROM BookAuthor \
-			WHERE book_id = ? ) \
-		ORDER BY lastName, firstName"
-	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
-		if(error){
-			res.send("Error");
-		}
-		context.selected_authors = results;
 		complete();
 	});
 }
@@ -467,7 +448,60 @@ function getSubCategories(subcategory_id, res, mysql, context, complete){
 	});
 }
 
-// delete any existing BookAuthor associations for the given book
+/*************************************************
+* Insert a book or update an existing entry
+*************************************************/
+function insertUpdateBook(book_info, res, mysql, context, insertComplete){
+	
+	var title = book_info.book_title;
+	var author_id = book_info.author;
+	var language = book_info.book_language;
+	var year = book_info.book_year;
+	var lang_id = book_info.book_language;
+	var category_id = book_info.book_category
+	var addl_authors = book_info.addl_authors;
+	var book_id = book_info.book_id;
+
+	if(!category_id){
+		category_id = null;
+	}
+
+	var is_anthology = 0;
+	if(book_info.is_anthology){
+		is_anthology = 1;
+	}
+
+	var insert_query = "INSERT IGNORE INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
+	var update_query = "UPDATE IGNORE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
+	var book_query;
+
+	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];
+
+	if (book_id){
+		// if it's an edit to an existing book, we'll use the update query
+		book_query = update_query;
+		// and we'll need to include the book ID
+		book_query_vals.push(book_id);
+	} else {
+		// if it's a new book, we will use the insert query
+		book_query = insert_query;
+	}
+
+	mysql.pool.query(book_query, book_query_vals, function(err, result){
+		if(book_id){
+			// if this was an update, we'll note the ID that we updated
+			context.book_id = book_id;
+		} else {
+			// if this was an insert, we'll note the ID that was just created
+			context.book_id = result.insertId;
+		}
+		insertComplete();
+	});
+}
+
+/*************************************************
+* delete any existing BookAuthor associations for the given book
+*************************************************/
 function deleteBookAuthors(book_id, res, mysql, context, deleteComplete){
 	mysql.pool.query("DELETE FROM BookAuthor WHERE book_id = ?", [book_id], function(error, result){
 		if(error){
@@ -477,7 +511,9 @@ function deleteBookAuthors(book_id, res, mysql, context, deleteComplete){
 	});
 }
 
-// add secondary authors for a given book
+/*************************************************
+* add secondary authors for a given book
+*************************************************/
 function addSecondaryAuthors(book_id, addl_authors, res, mysql, context, complete){
 	var multi_author_statement = "INSERT IGNORE INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
 	var multi_author_vars;
@@ -503,53 +539,6 @@ function addSecondaryAuthors(book_id, addl_authors, res, mysql, context, complet
 	});
 }
 
-function insertUpdateBook(book_info, res, mysql, context, insertComplete){
-	
-	var title = book_info.book_title;
-	var author_id = book_info.author;
-	var language = book_info.book_language;
-	var year = book_info.book_year;
-	var lang_id = book_info.book_language;
-	var category_id = book_info.book_category
-	var addl_authors = book_info.addl_authors;
-	var book_id = book_info.book_id;
-
-	if(!category_id){
-		category_id = null;
-	}
-
-	var is_anthology = 0;
-	if(book_info.is_anthology){
-		is_anthology = 1;
-	}
-
-	var insert_query = "INSERT IGNORE INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
-	var update_query = "UPDATE IGNORE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
-	var book_query = null;
-
-	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];
-
-	if (book_id){
-		// if it's an edit to an existing book, we'll use the update query
-		book_query = update_query;
-		// and we'll need to include the book ID
-		book_query_vals.push(book_id);
-	} else {
-		// if it's a new book, we will use the insert query
-		book_query = insert_query;
-	}
-
-	mysql.pool.query(book_query, book_query_vals, function(err, result){
-		if(book_id){
-			// if this was an update, we'll note the ID that we updated
-			context.book_id = book_id;
-		} else {
-			// if this was an insert, we'll note the ID that was just created
-			context.book_id = result.insertId;
-		}
-		insertComplete();
-	});
-}
 
 /*************************************************
 * List functions:
@@ -590,7 +579,7 @@ app.get('/editBook', function(req, res, next){
 	getBooks(book_id, null, res, mysql, context, complete);
 	getLanguages(null, res, mysql, context, complete);
 	getSubCategories(null, res, mysql, context, complete);
-	getSelectedAuthors(book_id, res, mysql, context, complete);
+	getSecondaryAuthors(book_id, res, mysql, context, complete);
 	getNonSelectedAuthors(book_id, res, mysql, context, complete);
 
 	function complete(){
@@ -941,6 +930,7 @@ app.get('/bookDetails', function(req, res, next){
 *************************************************/
 
 // handle request to create or edit an author
+// this route makes the query itself rather than using an external function
 app.post('/editAuthor', function(req, res, next){
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
@@ -979,6 +969,7 @@ app.post('/editAuthor', function(req, res, next){
 });
 
 // handle request to create or edit a user
+// this route makes the query itself rather than using an external function
 app.post('/editUser', function(req, res, next){
 	var user_id = req.body.user_id;
 	var user_name = req.body.user_name;
@@ -1016,6 +1007,7 @@ app.post('/editUser', function(req, res, next){
 });
 
 // handle request to create or edit a language
+// this route makes the query itself rather than using an external function
 app.post('/editLanguage', function(req, res, next){
 	var language_id = req.body.language_id;
 	var language = req.body.language_name;
@@ -1046,6 +1038,7 @@ app.post('/editLanguage', function(req, res, next){
 });
 
 // handle request to create or edit a country
+// this route makes the query itself rather than using an external function
 app.post('/editCountry', function(req, res, next){
 	var country_id = req.body.country_id;
 	var country = req.body.country_name;
@@ -1076,6 +1069,7 @@ app.post('/editCountry', function(req, res, next){
 });
 
 // handle request to create or edit a category
+// this route makes the query itself rather than using an external function
 app.post('/editCategory', function(req, res, next){
 	var category_id = req.body.category_id;
 	var category = req.body.category_name;
@@ -1104,6 +1098,7 @@ app.post('/editCategory', function(req, res, next){
 });
 
 // handle request to create or edit a subcategory
+// this route makes the query itself rather than using an external function
 app.post('/editSubCategory', function(req, res, next){
 	var subcategory_id = req.body.subcategory_id;
 	var subcategory = req.body.subcategory_name;
@@ -1133,6 +1128,7 @@ app.post('/editSubCategory', function(req, res, next){
 })
 
 // handle request to create or edit a format
+// this route makes the query itself rather than using an external function
 app.post('/editFormat', function(req, res, next){
 	var format = req.body.format_name;
 	var format_id = req.body.format_id;
@@ -1161,6 +1157,7 @@ app.post('/editFormat', function(req, res, next){
 });
 
 // handle request to create or edit a book
+// there are several requests made here, so they are handled in separate functions for the sake of clarity
 app.post('/editBook', function(req, res, next){
 	var context = {};
 
@@ -1278,7 +1275,7 @@ app.get('/deleteBook', function(req, res, next){
 	});
 });
 
-// deletes user
+// deletes a user
 app.get('/deleteUser', function(req, res, next){
 	mysql.pool.query("DELETE FROM User WHERE id = ?", [req.query.user_id], function(err, result){
 		if(err){
@@ -1291,6 +1288,7 @@ app.get('/deleteUser', function(req, res, next){
 	})
 })
 
+// delets an author
 app.get('/deleteAuthor', function(req, res, next){
 	mysql.pool.query("DELETE FROM Author WHERE id = ?", [req.query.author_id], function(err, result){
 		if(err){
@@ -1303,6 +1301,7 @@ app.get('/deleteAuthor', function(req, res, next){
 	});
 });
 
+// deletes a subcategory
 app.get('/deleteSubCategory', function(req, res, next){
 	mysql.pool.query("DELETE FROM SubCategory WHERE id = ?", [req.query.subcategory_id], function(err, result){
 		if(err){
@@ -1315,6 +1314,7 @@ app.get('/deleteSubCategory', function(req, res, next){
 	});
 });
 
+// deletes a category
 app.get('/deleteCategory', function(req, res, next){
 	mysql.pool.query("DELETE FROM Category WHERE id = ?", [req.query.category_id], function(err, result){
 		if(err){
@@ -1327,6 +1327,7 @@ app.get('/deleteCategory', function(req, res, next){
 	})
 });
 
+// deletes a country
 app.get('/deleteCountry', function(req, res, next){
 	mysql.pool.query("DELETE FROM Country WHERE id = ?", [req.query.country_id], function(err, result){
 		if(err){
@@ -1339,6 +1340,7 @@ app.get('/deleteCountry', function(req, res, next){
 	})
 });
 
+// deletes a language
 app.get('/deleteLanguage', function(req, res, next){
 	mysql.pool.query("DELETE FROM Language WHERE id = ?", [req.query.language_id], function(err, result){
 		if(err){
@@ -1351,6 +1353,7 @@ app.get('/deleteLanguage', function(req, res, next){
 	})
 });
 
+// deletes a foramt
 app.get('/deleteFormat', function(req, res, next){
 	mysql.pool.query("DELETE FROM Format WHERE id = ?", [req.query.format_id], function(err, result){
 		if(err){
