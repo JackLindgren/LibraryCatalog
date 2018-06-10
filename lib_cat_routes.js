@@ -51,7 +51,13 @@ app.get('/updateIndex', function(req, res, next){
 /*************************************************
 * Selection functions
 * Most select queries will be handled with one of these functions
-* (Some will be handled in the route, though)
+* (Some simpler queries will still be handled in the route itself, though)
+*************************************************/
+
+/*************************************************
+* Get information all books, or a specific books
+* Takes a set of search parameters which can filter on most attributes
+* Used for the listbook and book details pages
 *************************************************/
 function getBooks(book_id, search_params, res, mysql, context, complete){
 	var book_query = "SELECT \
@@ -144,6 +150,10 @@ function getBooks(book_id, search_params, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get information all users or a single user
+* Used for the user list page and user details
+*************************************************/
 function getUsers(user_id, res, mysql, context, complete){
 	var users_query = "SELECT id, user_name, user_email FROM User";
 	var query_args = [];
@@ -166,6 +176,11 @@ function getUsers(user_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get the books belonging to a user (or a specific book instance)
+* This is for gathering book INSTANCES, rather than the abstract book
+* e.g. we're getting "Johnny's hardcover copy of 'Ulysses'", not "Ulysses" the abstract book
+*************************************************/
 function getUserBooks(user_id, book_id, format_id, res, mysql, context, complete){
 	var book_query = "SELECT b.title, b.year, l.language, a.firstName, a.lastName, c.country, \
 		b.id AS book_id, l.id AS lang_id, a.id AS auth_id, c.id AS country_id, a.gender, b.category_id, \
@@ -205,8 +220,14 @@ function getUserBooks(user_id, book_id, format_id, res, mysql, context, complete
 	});
 }
 
+/*************************************************
+* Get the count of the number of books on a user's shelf
+*************************************************/
 function getUserReadBooksCount(user_id, res, mysql, context, complete){
-	var query = "SELECT COUNT(DISTINCT(book_id)) AS 'count' FROM BookUser WHERE date_read IS NOT NULL AND user_id = ?";
+	var query = "SELECT COUNT(DISTINCT(book_id)) AS 'count' \
+		FROM BookUser \
+		WHERE date_read IS NOT NULL \
+		AND user_id = ?";
 	mysql.pool.query(query, [user_id], function(error, results, fields){
 		if(error){
 			res.send("Error");
@@ -217,6 +238,10 @@ function getUserReadBooksCount(user_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get authors or a specific author
+* Can filter by country to return a list of Authors from a given country
+*************************************************/
 function getAuthors(author_id, country_id, res, mysql, context, complete){
 
 	var author_query = "SELECT a.id, a.firstName, a.lastName, a.dob, a.gender, Country.country, Country.id AS country_id \
@@ -247,8 +272,12 @@ function getAuthors(author_id, country_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get the secondary authors of a given book
+* e.g. Dennis Ritchie for "The C Programming Language"
+*************************************************/
 function getSecondaryAuthors(book_id, res, mysql, context, complete){
-	var authors_query = "SELECT Author.firstName, Author.lastName \
+	var authors_query = "SELECT Author.id, Author.firstName, Author.lastName \
 		FROM BookAuthor \
 		INNER JOIN Author ON BookAuthor.author_id = Author.id \
 		WHERE BookAuthor.book_id = ?";
@@ -262,8 +291,18 @@ function getSecondaryAuthors(book_id, res, mysql, context, complete){
 	})
 }
 
+/*************************************************
+* Get the authors who are NOT secondary authors of the given book
+*************************************************/
 function getNonSelectedAuthors(book_id, res, mysql, context, complete){
-	var authors_query = "SELECT id, firstName, lastName FROM Author WHERE id NOT IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName"
+	var authors_query = "SELECT id, firstName, lastName \
+		FROM Author \
+		WHERE id NOT IN (\
+			SELECT author_id \
+			FROM BookAuthor \
+			WHERE book_id = ? \
+		) \
+		ORDER BY lastName, firstName"
 	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
 		if(error){
 			res.send("Error");
@@ -273,8 +312,17 @@ function getNonSelectedAuthors(book_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* 
+*************************************************/
 function getSelectedAuthors(book_id, res, mysql, context, complete){
-	var authors_query = "SELECT id, firstName, lastName FROM Author WHERE id IN (SELECT author_id FROM BookAuthor WHERE book_id = ?) ORDER BY lastName, firstName"
+	var authors_query = "SELECT id, firstName, lastName \
+		FROM Author \
+		WHERE id IN (\
+			SELECT author_id \
+			FROM BookAuthor \
+			WHERE book_id = ? ) \
+		ORDER BY lastName, firstName"
 	mysql.pool.query(authors_query, [book_id], function(error, results, fields){
 		if(error){
 			res.send("Error");
@@ -284,6 +332,9 @@ function getSelectedAuthors(book_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get a list of countries, or a specific country
+*************************************************/
 function getCountries(country_id, res, mysql, context, complete){
 	var country_query = "SELECT id, country, region FROM Country";
 	var query_args = [];
@@ -307,6 +358,9 @@ function getCountries(country_id, res, mysql, context, complete){
 	});	
 }
 
+/*************************************************
+* Get a list of languages, or a specific language
+*************************************************/
 function getLanguages(language_id, res, mysql, context, complete){
 
 	var language_query = "SELECT id, language, language_family FROM Language ";
@@ -334,6 +388,9 @@ function getLanguages(language_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get a list of formats, or a specific format
+*************************************************/
 function getFormats(format_id, res, mysql, context, complete){
 	var format_query = "SELECT id, format FROM Format ";
 	var query_args = [];
@@ -356,6 +413,9 @@ function getFormats(format_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get a list of categories, or a specific category
+*************************************************/
 function getCategories(category_id, res, mysql, context, complete){
 	var category_query = "SELECT id, name FROM Category ";
 	var query_args = [];
@@ -377,6 +437,9 @@ function getCategories(category_id, res, mysql, context, complete){
 	});
 }
 
+/*************************************************
+* Get a list of subcategories, or a specific subcategory
+*************************************************/
 function getSubCategories(subcategory_id, res, mysql, context, complete){
 	var subcategory_query = "SELECT SubCategory.id AS subcategory_id, \
 		SubCategory.name AS subcategory, \
@@ -404,6 +467,89 @@ function getSubCategories(subcategory_id, res, mysql, context, complete){
 	});
 }
 
+// delete any existing BookAuthor associations for the given book
+function deleteBookAuthors(book_id, res, mysql, context, deleteComplete){
+	mysql.pool.query("DELETE FROM BookAuthor WHERE book_id = ?", [book_id], function(error, result){
+		if(error){
+			res.send("Error");
+		}
+		deleteComplete();
+	});
+}
+
+// add secondary authors for a given book
+function addSecondaryAuthors(book_id, addl_authors, res, mysql, context, complete){
+	var multi_author_statement = "INSERT IGNORE INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
+	var multi_author_vars;
+	if(typeof(addl_authors) == "string"){
+		// single author
+		multi_author_vars = [book_id, addl_authors];
+	} else {
+		// multiple authors
+		multi_author_vars = [book_id, addl_authors[0]];
+		for(var i = 1; i < addl_authors.length; i++){
+			multi_author_statement += ", (?, ?) ";
+			multi_author_vars.push(book_id);
+			multi_author_vars.push(addl_authors[i]);
+		}
+	}
+
+	mysql.pool.query(multi_author_statement, multi_author_vars, function(error, result){
+		if(error){
+			res.send("Error");
+		}
+		// this is the last step in inserting/updating a book
+		complete();
+	});
+}
+
+function insertUpdateBook(book_info, res, mysql, context, insertComplete){
+	
+	var title = book_info.book_title;
+	var author_id = book_info.author;
+	var language = book_info.book_language;
+	var year = book_info.book_year;
+	var lang_id = book_info.book_language;
+	var category_id = book_info.book_category
+	var addl_authors = book_info.addl_authors;
+	var book_id = book_info.book_id;
+
+	if(!category_id){
+		category_id = null;
+	}
+
+	var is_anthology = 0;
+	if(book_info.is_anthology){
+		is_anthology = 1;
+	}
+
+	var insert_query = "INSERT IGNORE INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
+	var update_query = "UPDATE IGNORE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
+	var book_query = null;
+
+	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];
+
+	if (book_id){
+		// if it's an edit to an existing book, we'll use the update query
+		book_query = update_query;
+		// and we'll need to include the book ID
+		book_query_vals.push(book_id);
+	} else {
+		// if it's a new book, we will use the insert query
+		book_query = insert_query;
+	}
+
+	mysql.pool.query(book_query, book_query_vals, function(err, result){
+		if(book_id){
+			// if this was an update, we'll note the ID that we updated
+			context.book_id = book_id;
+		} else {
+			// if this was an insert, we'll note the ID that was just created
+			context.book_id = result.insertId;
+		}
+		insertComplete();
+	});
+}
 
 /*************************************************
 * List functions:
@@ -499,6 +645,8 @@ app.get('/editUserBook', function(req, res, next){
 	}
 });
 
+// Update a user's book instance. 
+// This is for setting/editing the book's rating or read date
 app.post('/editUserBook', function(req, res, next){
 	
 	var user_id = req.body.user_id;
@@ -1014,89 +1162,31 @@ app.post('/editFormat', function(req, res, next){
 
 // handle request to create or edit a book
 app.post('/editBook', function(req, res, next){
-	console.log(req.body);
+	var context = {};
 
-	var title = req.body.book_title;
-	var author_id = req.body.author;
-	var language = req.body.book_language;
-	var year = req.body.book_year;
-	var lang_id = req.body.book_language;
-	var category_id = req.body.book_category
-	var addl_authors = req.body.addl_authors;
-	var book_id = req.body.book_id;
+	// insert or update the book - this will set context.book_id
+	insertUpdateBook(req.body, res, mysql, context, insertComplete);
 
-	console.log(lang_id);
-
-	if(!category_id){
-		category_id = null;
+	// callback after the book is inserted
+	function insertComplete(){
+		// after the insertion, delete any existing author associations
+		deleteBookAuthors(context.book_id, res, mysql, context, deleteComplete);
 	}
 
-	var is_anthology = 0;
-	if(req.body.is_anthology){
-		is_anthology = 1;
-	}
-
-	var insert_query = "INSERT IGNORE INTO Book (title, year, language_id, author_id, category_id, is_anthology) VALUES (?, ?, ?, ?, ?, ?)";
-	var update_query = "UPDATE IGNORE Book SET title = ?, year = ?, language_id = ?, author_id = ?, category_id = ?, is_anthology = ? WHERE Book.id = ?";
-	var book_query = null;
-
-	var book_query_vals = [title, year, lang_id, author_id, category_id, is_anthology];
-
-	if (book_id){
-		// if it's an edit to an existing book, we'll use the update query
-		book_query = update_query;
-		// and we'll need to include the book ID
-		book_query_vals.push(book_id);
-	} else {
-		// if it's a new book, we will use the insert query
-		book_query = insert_query;
-	}
-
-	mysql.pool.query(book_query, book_query_vals, function(err, result){
-		if(err){
-			res.send({response: "Database error"});
-			next(err);
-			return;
+	function deleteComplete(){
+		// after existing author associations are removed, add any new secondary authors, if relevant
+		if(req.body.addl_authors){
+			addSecondaryAuthors(context.book_id, req.body.addl_authors, res, mysql, context, complete);
 		} else {
-			// delete any authors currently associated with the book
-			mysql.pool.query("DELETE FROM BookAuthor WHERE book_id = ?", [book_id], function(err, result){
-				if(err){
-					res.send({response: "Database error"});
-					next(err);
-					return;
-				} else {
-					if(addl_authors){
-						// if there are additional authors, add them
-						var multi_author_statement = "INSERT IGNORE INTO BookAuthor (book_id, author_id) VALUES (?, ?) ";
-						var multi_author_vars;
-						if(typeof(addl_authors) == "string"){
-							// single author
-							multi_author_vars = [book_id, addl_authors];
-						} else {
-							// multiple authors
-							multi_author_vars = [book_id, addl_authors[0]];
-							for(var i = 1; i < addl_authors.length; i++){
-								multi_author_statement += ", (?, ?) ";
-								multi_author_vars.push(book_id);
-								multi_author_vars.push(addl_authors[i]);
-							}
-						}
-						mysql.pool.query(multi_author_statement, multi_author_vars, function(err, result){
-							if(err){
-								res.send({response: "Database error"});
-								next(err);
-								return;
-							} else {
-								res.redirect("/listBooks");
-							}
-						})
-					} else {
-						res.redirect("/listBooks");
-					}
-				}
-			});
+			complete();
 		}
-	});
+	}
+
+	function complete(){
+		// redirect to the book list
+		res.redirect("/listBooks");
+	}
+
 });
 
 /*************************************************
