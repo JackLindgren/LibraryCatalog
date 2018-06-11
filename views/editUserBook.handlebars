@@ -12,22 +12,27 @@
 		Country: {{book_info.country}}<br>
 		Year: {{book_info.year}}<br>
 		Date Added: {{book_info.date_added}}<br>
-		Format: {{book_info.format}}<br>
+		<!-- Format: {{book_info.format}}<br> -->
+		Format: <select name="format_id">
+					{{#each formats}}
+					<option value="{{this.id}}" id="format_{{this.id}}">{{this.format}}</option>
+					{{/each}}
+				</select>
 		Rating: <select name="rating">
-					{{#if book_info.rating}}
-					<option value="{{book_info.rating}}" selected="selected">{{book_info.rating}}</option>
-					{{/if}}
 					<option value=""></option>
-					<option value="1">1</option>
-					<option value="2">2</option>
-					<option value="3">3</option>
-					<option value="4">4</option>
-					<option value="5">5</option>
+					<option value="1" id="rating_1">1</option>
+					<option value="2" id="rating_2">2</option>
+					<option value="3" id="rating_3">3</option>
+					<option value="4" id="rating_4">4</option>
+					<option value="5" id="rating_5">5</option>
 				</select><br>
 		Date Read: <input type="date" name="date_read" value="{{book_info.date_read}}"><br>
 		<input type="hidden" name="book_id" value="{{book_info.book_id}}">
 		<input type="hidden" name="user_id" value="{{book_info.user_id}}">
-		<input type="hidden" name="format_id" value="{{book_info.format_id}}">
+		<input type="hidden" name="given_format_id" id="given_format_id" value="{{book_info.format_id}}">
+		<input type="hidden" id="given_rating" value="{{book_info.rating}}">
 		<input type="submit" value="Submit">
 	</fieldset>
 </form>
+
+<script src="selectionSetUserBook.js"></script>

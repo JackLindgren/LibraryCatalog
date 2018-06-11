@@ -449,6 +449,11 @@ function getSubCategories(subcategory_id, res, mysql, context, complete){
 }
 
 /*************************************************
+* Functions for insert or editing a book
+* including the update of its secondary authors
+*************************************************/
+
+/*************************************************
 * Insert a book or update an existing entry
 *************************************************/
 function insertUpdateBook(book_info, res, mysql, context, insertComplete){
@@ -541,10 +546,9 @@ function addSecondaryAuthors(book_id, addl_authors, res, mysql, context, complet
 
 
 /*************************************************
-* List functions:
-* books
-* authors
+* Routes for rendering the various list and edit pages
 *************************************************/
+
 // list the current books in the database
 app.get('/listBooks', function(req, res, next){
 	var context = {};
@@ -625,10 +629,11 @@ app.get('/editUserBook', function(req, res, next){
 	var callbackCount = 0;
 
 	getUserBooks(user_id, book_id, format_id, res, mysql, context, complete);
+	getFormats(null, res, mysql, context, complete);
 
 	function complete(){
 		callbackCount++;
-		if(callbackCount >= 1){
+		if(callbackCount >= 2){
 			res.render('editUserBook', context);
 		}
 	}
@@ -640,6 +645,7 @@ app.post('/editUserBook', function(req, res, next){
 	
 	var user_id = req.body.user_id;
 	var book_id = req.body.book_id;
+	var old_format_id = req.body.given_format_id;
 	var format_id = req.body.format_id;
 	var rating = req.body.rating;
 	var date_read = req.body.date_read;
@@ -651,8 +657,10 @@ app.post('/editUserBook', function(req, res, next){
 		date_read = null;
 	}
 
-	mysql.pool.query("UPDATE IGNORE BookUser SET rating = ?, date_read = ? WHERE book_id = ? AND user_id = ? AND format_id = ?",
-		[rating, date_read, book_id, user_id, format_id],
+	mysql.pool.query("UPDATE IGNORE BookUser \
+		SET rating = ?, date_read = ?, format_id = ? \
+		WHERE book_id = ? AND user_id = ? AND format_id = ?",
+		[rating, date_read, format_id, book_id, user_id, old_format_id],
 		function(err, result){
 		if(err){
 			res.send({response: "Database error"});
