@@ -21,21 +21,20 @@
 <a href="/countries">Show Countries</a><br>
 <a href="/categories">Show Categories</a><br>
 <a href="/formats">Show Formats</a><br>
-<br>
-<a href="/bookDetails?book_id=1436">Show Seconary Authors (many:many)</a> (in the "Secondary Authors" field)<br>
-<a href="/listUserBooks?user_id=1">Show A User's Books (many:many)</a><br>
+To see a book with secondary authors (many:many), <a href="/listBooks?title=c+programming">search for <i>The C Programming Language</i></a> on the <a href="/listBooks">Book List page</a>, then click on the book's title to view details<br>
+To see a user's books (many:many), navigate to the <a href="/listUsers">User List page</a> and click on one of the User's <b>list books</b> links<br>
 
 <h1>Update Pages</h1>
 
-<a href="/editBook?book_id=1465">Update a book</a> or use the "edit" link for any <a href="/listBooks">listed book</a> (this also includes Author:Book many:many relationships)<br>
-<a href="/editAuthor?author_id=761">Update an author</a> or use the "edit" link for any <a href="/listAuthors">listed author</a><br>
-<a href="/editUser?user_id=1">Update a user</a> or use the "edit" link for any <a href="/listUsers">listed user</a><br>
-<a href="/languages?language_id=78">Update a language</a> or use the "edit" link for any <a href="/languages">listed language</a><br>
-<a href="/countries?country_id=1">Update a Country</a> or use the "edit" link for any <a href="/countries">listed country</a><br>
-<a href="/categories?subcategory_id=15">Update a subcategory</a> or use the "edit" link for any <a href="/categories">listed subcategory</a><br>
-<a href="/categories?category_id=5">Update a category</a> or use the "edit" link for any <a href="/categories">listed category</a><br>
-<a href="/formats?format_id=4">Update a format</a> or use the "edit" link for any <a href="/formats">listed format</a><br>
-<a href="/editUserBook?user_id=1&book_id=934&format_id=1">Update information about a book on a user's shelf</a> or user the "edit" link for any book on a <a href="/listUserBooks?user_id=1">user's shelf</a><br>
+Use the "edit" link for any <a href="/listBooks">listed book</a> (this also includes Author:Book many:many relationships)<br>
+Use the "edit" link for any <a href="/listAuthors">listed author</a><br>
+Use the "edit" link for any <a href="/listUsers">listed user</a><br>
+Use the "edit" link for any <a href="/languages">listed language</a><br>
+Use the "edit" link for any <a href="/countries">listed country</a><br>
+Use the "edit" link for any <a href="/categories">listed subcategory</a><br>
+Use the "edit" link for any <a href="/categories">listed category</a><br>
+Use the "edit" link for any <a href="/formats">listed format</a><br>
+From <a href="/listUsers">the user list page</a>, click on "list books" to access the book list for a given user, then click "Edit Shelf Info" to edit the book instance<br>
 
 <h1>Delete Pages</h1>
 <a href="/listBooks">Delete Books</a> ("delete" link)<br>
@@ -46,5 +45,5 @@
 <a href="/categories">Delete Categories or Subcategories</a> ("delete" link)<br>
 <a href="/formats">Delete Formats</a> ("delete" link)<br>
 <br>
-<a href="/editBook?book_id=1436">Delete Author:Book (many:many) Association</a> select the blank author - this will clear out all secondary authors<br>
-<a href="/listUserBooks?user_id=1">Delete User:Book (many:many) Association</a> "delete" link will destroy the association record, removing the book from the user's shelf<br>
+To de-associate a secondary Author from a Book, search for <i>The C Programming Language</i> on the <a href="/listBooks">Book List page</a>, click on the <i>edit</i> link, and select the blank author from the <i>secondary authors</i> multi-select - this will clear out all secondary author associations<br>
+To de-associate a Book from a User, navigate to the <a href="/listUsers">User List page</a>, click on a user's <i>list books</i> link, and click <i>Remove From Shelf</i> - this will remove the user book association<br>
