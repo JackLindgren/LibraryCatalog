@@ -27,17 +27,16 @@
 	{{#each books}}
 	<tr>
 		<td>{{this.title}}</td>
-		<td><a href="/listBooks?author_id={{this.auth_id}}">{{this.lastName}}, {{this.firstName}}</a></td>
+		<td>{{this.lastName}}, {{this.firstName}}</td>
 		<td>{{this.language}}</td>
-		<td><a href="/listBooks?country_id={{this.country_id}}">{{this.country}}</a></td>
+		<td>{{this.country}}</td>
 		<td>{{this.year}}</td>
-		<td><a href="/listBooks?gender={{this.gender}}">{{this.gender}}</a></td>
-		<td><a href="/listBooks?category_id={{this.category_id}}">{{this.category_name}}</a></td>
+		<td>{{this.gender}}</td>
+		<td>{{this.category_name}}</td>
 		<td>{{this.rating}}</td>
 		<td>{{this.date_added}}</td>
 		<td>{{this.date_read}}</td>
 		<td>{{this.format}}</td>
-		<td><a href="/editBook?book_id={{this.book_id}}">Edit</a></td>
 		<td><a href="/removeBook?user_id={{this.user_id}}&book_id={{this.book_id}}&format_id={{this.format_id}}" onclick="return confirmDeletion('book from shelf')">Remove From Shelf</a></td>
 		<td><a href="/editUserBook?user_id={{this.user_id}}&book_id={{this.book_id}}&format_id={{this.format_id}}">Edit Shelf Info</a></td>
 	</tr>
